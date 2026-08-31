@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GDB 调试工作流：共享库断点、单步、watch、commands、多线程与 scheduler locking 的实用笔记。">
+  <link rel="stylesheet" href="../../assets/css/site.css">
+  <link rel="stylesheet" href="../../assets/css/round2.css">
+  <title>GDB 调试工作流 · Knowledge Base</title>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <header class="site-header">
+    <div class="container nav-shell">
+      <a class="brand" href="../../"><span class="brand-mark" aria-hidden="true">CYH</span><span>Chenyinhong</span></a>
+      <button class="nav-control icon-button nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav" aria-label="打开导航"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
+      <nav class="nav-links" id="site-nav" data-nav-menu aria-label="主导航"><a href="../../">主页</a><a href="../" aria-current="page">知识库</a><button class="nav-control icon-button" type="button" data-theme-toggle aria-label="切换主题">◐</button></nav>
+    </div>
+  </header>
+
+  <main id="main" class="article-shell">
+    <nav class="breadcrumbs" aria-label="面包屑"><a href="../../">主页</a><span>/</span><a href="../">知识库</a><span>/</span><span>GDB 调试工作流</span></nav>
+    <article>
+      <header class="article-header">
+        <p class="eyebrow">Linux & Tooling</p>
+        <h1>GDB 调试工作流</h1>
+        <p class="article-deck">不要把 GDB 记成命令表。更实用的方式是按“断点 → 观察 → 线程 → 自动化”建立最短定位闭环。</p>
+        <div class="article-kicker"><span class="meta-pill">GDB</span><span class="meta-pill">C / C++</span><span class="meta-pill">Shared Library</span><span class="meta-pill">Threads</span></div>
+      </header>
+
+      <div class="article-body">
+        <div class="article-callout"><strong>最小三步：</strong><p>共享库符号尚未加载时先允许 pending breakpoint；程序启动后再对目标函数打断点；命中后用 <code>n</code> / <code>s</code> / <code>finish</code> 控制观察粒度。</p></div>
+
+        <h2 id="breakpoint">1. 先把断点打到正确位置</h2>
+        <pre><code># 允许目标符号尚未加载时保留断点
+set breakpoint pending on
+
+# 文件 + 行号
+b runtime.cc:4873
+
+# 函数
+b Runtime::BinaryLoad
+
+# 启动程序
+run</code></pre>
+        <p>如果目标函数位于运行时才加载的 <code>.so</code> 中，pending breakpoint 可以避免因为当前找不到符号而直接丢掉断点。</p>
+
+        <h2 id="step">2. 命中后控制观察粒度</h2>
+        <pre><code># 下一行，不进入函数
+n
+# 单步进入函数
+s
+
+# 跑到当前函数返回
+finish
+
+# 继续运行
+c</code></pre>
+        <p>需要看调用函数内部状态时用 <code>s</code>，只关心当前层逻辑时优先 <code>n</code>；进入太深后用 <code>finish</code> 回到调用点。</p>
+
+        <h2 id="observe">3. 观察变量和调用栈</h2>
+        <pre><code># 打印变量
+p value
+
+# 十六进制打印
+p/x address
+
+# 变量变化时停住
+watch value
+
+# 当前调用栈
+bt</code></pre>
+        <p><code>watch</code> 适合回答“是谁改了这个值”，而 <code>bt</code> 适合回答“程序为什么走到这里”。二者解决的是不同问题。</p>
+
+        <h2 id="commands">4. 把重复动作写进 commands</h2>
+        <pre><code>commands 1
+  silent
+  p a
+  bt
+  c
+end</code></pre>
+        <p>上面的 <code>1</code> 是断点编号，不是函数名。每次 1 号断点命中后，GDB 会自动执行打印变量、打印调用栈并继续运行。</p>
+
+        <h2 id="threads">5. 多线程问题先看全局，再锁定单线程</h2>
+        <pre><code># 查看所有线程
+info threads
+
+# 切换到 3 号线程
+thread 3
+
+# 打印全部线程调用栈
+thread apply all bt
+
+# 单步时只让当前线程运行
+set scheduler-locking on
+
+# 恢复正常线程调度
+set scheduler-locking off</code></pre>
+        <p>单步过程中其他线程继续执行会导致状态变化时，可以临时打开 scheduler locking；定位完成后要及时关闭。</p>
+
+        <h2 id="quality">6. 让输出更适合长时间调试</h2>
+        <pre><code># 禁止分页，避免脚本/长输出被 --More-- 打断
+set pagination off</code></pre>
+        <p>如果需要临时验证返回值分支，还可以使用 <code>return 0</code> 或 <code>return 1</code> 强制当前函数返回，但这会改变程序行为，只适合有明确目的的调试实验。</p>
+
+        <div class="article-checklist"><strong>定位顺序</strong><ul><li>先确认断点是否真的命中目标代码。</li><li>再确认输入参数和关键状态。</li><li>再看调用栈判断上游路径。</li><li>多线程问题最后进入线程切换和调度锁定。</li><li>重复观察动作写进 <code>commands</code>。</li></ul></div>
+      </div>
+
+      <footer class="article-footer"><a class="button" href="../">← 返回知识库</a><a class="button button-primary" href="linux-engineering-toolbox.html">Linux 工具箱 →</a></footer>
+    </article>
+  </main>
+  <script src="../../assets/js/site.js" defer></script>
+</body>
+</html>

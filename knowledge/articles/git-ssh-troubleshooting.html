@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Git SSH 连接排障：verbose 日志、443 端口、ssh.github.com、临时 GIT_SSH_COMMAND 与配置验证。">
+  <link rel="stylesheet" href="../../assets/css/site.css">
+  <link rel="stylesheet" href="../../assets/css/round2.css">
+  <title>Git SSH 连接排障 · Knowledge Base</title>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <header class="site-header">
+    <div class="container nav-shell">
+      <a class="brand" href="../../"><span class="brand-mark" aria-hidden="true">CYH</span><span>Chenyinhong</span></a>
+      <button class="nav-control icon-button nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav" aria-label="打开导航"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
+      <nav class="nav-links" id="site-nav" data-nav-menu aria-label="主导航"><a href="../../">主页</a><a href="../" aria-current="page">知识库</a><button class="nav-control icon-button" type="button" data-theme-toggle aria-label="切换主题">◐</button></nav>
+    </div>
+  </header>
+
+  <main id="main" class="article-shell">
+    <nav class="breadcrumbs" aria-label="面包屑"><a href="../../">主页</a><span>/</span><a href="../">知识库</a><span>/</span><span>Git SSH 连接排障</span></nav>
+    <article>
+      <header class="article-header">
+        <p class="eyebrow">Linux & Tooling</p>
+        <h1>Git SSH 连接排障</h1>
+        <p class="article-deck">当 <code>git push</code> 卡在 SSH 握手、22 端口被限制或代理链路不稳定时，先把“Git 问题”和“SSH 连接问题”分开验证。</p>
+        <div class="article-kicker"><span class="meta-pill">Git</span><span class="meta-pill">SSH</span><span class="meta-pill">GitHub</span><span class="meta-pill">Port 443</span></div>
+      </header>
+
+      <div class="article-body">
+        <h2 id="remote">1. 先确认远端协议</h2>
+        <pre><code>git remote -v</code></pre>
+        <p>如果远端是 <code>git@github.com:owner/repo.git</code>，当前走的是 SSH；如果是 <code>https://github.com/...</code>，则应该排查 HTTPS / 代理链路，而不是 SSH 配置。</p>
+
+        <h2 id="verbose">2. 直接测试 SSH，并打开详细日志</h2>
+        <pre><code>ssh -vT git@github.com</code></pre>
+        <p>重点看日志停在哪一层：DNS、TCP 建连、密钥交换、Host Key、认证还是远端主动断开。<code>kex_exchange_identification</code> 一类错误通常发生在认证之前，因此先不要反复换 SSH key。</p>
+
+        <h2 id="443">3. 22 端口不稳定时测试 GitHub SSH 443</h2>
+        <pre><code>ssh -T -p 443 git@ssh.github.com</code></pre>
+        <p>如果 443 可以连通而默认 SSH 不行，可以把 GitHub 主机映射到 <code>ssh.github.com:443</code>。</p>
+
+        <pre><code># ~/.ssh/config
+Host github.com
+    HostName ssh.github.com
+    Port 443
+    User git</code></pre>
+
+        <p>配置后重新验证：</p>
+        <pre><code>ssh -vT git@github.com</code></pre>
+
+        <h2 id="temporary">4. 不想改配置时，用一次性命令验证</h2>
+        <pre><code>GIT_SSH_COMMAND="ssh -o HostName=ssh.github.com -p 443" git push</code></pre>
+        <p>这适合确认“改走 443 是否能解决问题”。如果临时命令稳定，再决定是否写入 <code>~/.ssh/config</code>。</p>
+
+        <h2 id="config">5. 确认 SSH 实际读取了什么配置</h2>
+        <pre><code>ssh -G github.com | grep -E 'hostname|port|user|identityfile'</code></pre>
+        <p><code>ssh -G</code> 会打印最终合并后的配置，比单纯打开 <code>~/.ssh/config</code> 更可靠，因为系统级配置、Include 和 Host 匹配都可能改变结果。</p>
+
+        <h2 id="separate">6. 把网络、认证、仓库权限分开</h2>
+        <div class="article-checklist"><strong>排障顺序</strong><ul><li><strong>网络：</strong>SSH 是否能建立连接和完成 key exchange。</li><li><strong>认证：</strong><code>ssh -T</code> 是否识别到 GitHub 账号。</li><li><strong>Git：</strong><code>git remote -v</code> 是否指向预期仓库。</li><li><strong>权限：</strong>当前账号是否对目标仓库具有 push 权限。</li></ul></div>
+        <p>只有前一层通过后再进入下一层，能避免把网络中断误判成密钥问题，也避免在 SSH 正常时继续修改代理。</p>
+      </div>
+
+      <footer class="article-footer"><a class="button" href="../">← 返回知识库</a><a class="button button-primary" href="linux-engineering-toolbox.html">Linux 工具箱 →</a></footer>
+    </article>
+  </main>
+  <script src="../../assets/js/site.js" defer></script>
+</body>
+</html>
