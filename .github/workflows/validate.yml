@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  pages: read
 
 jobs:
   validate:
@@ -15,10 +16,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: "20"
 
-      - name: Validate site structure and links
+      - name: Validate source and built site
         run: node scripts/validate-site.mjs

@@ -1,134 +1,106 @@
 # avengerdsf.github.io
 
-个人主页与技术知识库，使用原生 HTML / CSS / JavaScript 构建并通过 GitHub Pages 发布。
+个人主页与知识库。主页保持原生 HTML / CSS / JavaScript；知识项目使用 Markdown 编写，由 GitHub Pages / Jekyll 在部署阶段渲染为 HTML。
 
 ## 站点结构
 
 ```text
 .
-├── index.html                         # 个人主页 / 项目 / 力扣入口
+├── index.html                          # 个人主页 / 项目 / 力扣入口
+├── _config.yml                         # Jekyll 配置
+├── _layouts/
+│   └── note.html                       # Markdown 笔记项目共享布局
 ├── knowledge/
-│   ├── index.html                     # 正文直接展开的可搜索知识库
-│   └── articles/                      # 可独立访问的长文章
+│   ├── index.html                      # 笔记项目索引与元数据搜索
+│   ├── leetcode/
+│   │   └── index.md                    # 力扣笔记
+│   └── machine-learning/
+│       └── index.md                    # Machine Learning Notes
 ├── assets/
 │   ├── css/
-│   │   ├── site.css                   # 基础设计系统
-│   │   └── round2.css                 # 双悬浮导航与第二轮知识库布局
+│   │   ├── site.css                    # 基础设计系统
+│   │   ├── round2.css                  # 双悬浮导航与扩展布局
+│   │   ├── wide-desktop.css            # 宽屏布局
+│   │   └── markdown.css                # Markdown 正文样式
 │   └── js/
-│       ├── site.js                    # 主题、导航、动效等公共交互
-│       ├── knowledge-data.js          # 知识正文与公开源数据
-│       └── knowledge.js               # 搜索、筛选、正文渲染与锚点恢复
-├── scripts/validate-site.mjs          # 无依赖静态校验
+│       ├── site.js                     # 主题、导航与公共交互
+│       └── knowledge-index.js          # 两个笔记项目的元数据搜索
+├── scripts/validate-site.mjs           # 源码 / Jekyll 生成物校验
 └── .github/workflows/
-    ├── deploy.yml                     # GitHub Pages 部署
-    └── validate.yml                   # PR / main 静态校验
+    ├── deploy.yml                      # Jekyll 构建 + GitHub Pages 部署
+    └── validate.yml                    # PR / main 构建与校验
 ```
+
+## 知识库规则
+
+**Knowledge project = 一个真实、持续维护的笔记集合。**
+
+**Project repository != knowledge project。** 项目使用了 Linux、强化学习、GDB、Electron 等技术，并不意味着这些技术自动成为新的笔记分类。
+
+当前知识库只包含：
+
+- `knowledge/leetcode/index.md`：力扣笔记。
+- `knowledge/machine-learning/index.md`：Machine Learning Notes，对应公开源仓库 `avengerdsf/machine-learning-notes`。
+
+`agibot_rl_mjlab`、`ubuntu_toolbox`、`Tmux-generator`、`invoice-manager` 等仍属于项目，不作为笔记项目展示。只有确实存在新的维护型笔记集合时，才增加新的知识项目子页。
+
+## Markdown 渲染
+
+知识项目页使用 Jekyll front matter：
+
+```md
+---
+layout: note
+title: Example Notes
+kicker: Example
+description: 这个笔记项目的范围。
+---
+
+## 章节标题
+
+正文支持列表、表格、引用、链接、行内代码和 fenced code block。
+```
+
+共享布局位于 `_layouts/note.html`，Markdown 样式位于 `assets/css/markdown.css`。不要引入浏览器侧 Markdown 解析器。
 
 ## 本地预览
 
-仓库不需要安装 npm 依赖。进入仓库根目录后启动一个静态 HTTP 服务：
+GitHub Actions 是 Markdown 最终渲染结果的基准验证环境。安装 Jekyll 后可以在仓库根目录运行：
 
 ```bash
-python3 -m http.server 8000
+jekyll build
+jekyll serve
 ```
 
-访问：
+也可以只预览已经生成的 `_site/`：
+
+```bash
+python3 -m http.server 8000 --directory _site
+```
+
+然后访问：
 
 ```text
 http://localhost:8000/
 http://localhost:8000/knowledge/
+http://localhost:8000/knowledge/leetcode/
+http://localhost:8000/knowledge/machine-learning/
 ```
 
-不要直接双击 `knowledge/index.html`，因为知识库使用 ES Module，浏览器在 `file://` 协议下可能阻止模块加载。
+## 校验
 
-## 静态校验
-
-需要 Node.js 20 或更高版本：
+CI 会先使用 GitHub Pages 的 Jekyll 构建动作生成 `_site/`，再运行：
 
 ```bash
 node scripts/validate-site.mjs
 ```
 
-校验内容包括：
+校验包括：
 
-- 关键站点文件是否存在；
-- 每个 HTML 页面是否包含非空 `<title>`；
-- 单个 HTML 文件是否存在重复 `id`；
-- HTML 中的本地 `href` 是否能解析到真实文件或目录首页。
+- 必要源码文件是否存在；
+- Jekyll 是否生成两个 Markdown 子页；
+- HTML 是否有非空 `<title>`；
+- 是否存在重复 `id`；
+- 本地 `href` 是否能解析到真实文件或目录首页。
 
-Pull Request 会自动运行同一校验。
-
-## 知识库数据结构
-
-知识库正文默认直接显示在 `/knowledge/`，不需要先进入卡片再打开第二层页面。主要内容维护在 `assets/js/knowledge-data.js`。
-
-### 新增直接显示的笔记
-
-```js
-{
-  id: "example-note",
-  title: "Example Note",
-  description: "这篇笔记解决的问题。",
-  category: "Linux & Tooling",
-  tags: ["Linux", "Debug"],
-  source: "Site note",
-  kind: "note",
-  updated: "2026-08",
-  sections: [
-    {
-      title: "关键步骤",
-      paragraphs: ["说明文字。"],
-      bullets: ["第一点。", "第二点。"],
-      code: "example command"
-    }
-  ]
-}
-```
-
-`id` 同时作为知识库锚点，例如：
-
-```text
-/knowledge/#example-note
-```
-
-### 关联公开仓库
-
-如果一篇笔记有公开源仓库，可以在笔记中增加：
-
-```js
-source: "example-repo",
-sourceUrl: "https://github.com/avengerdsf/example"
-```
-
-需要单独展示公开仓库入口时使用：
-
-```js
-{
-  id: "example-repo",
-  title: "Example Repo · 源仓库",
-  description: "公开仓库说明。",
-  category: "Engineering Practice",
-  tags: ["Repository"],
-  source: "GitHub",
-  sourceUrl: "https://github.com/avengerdsf/example",
-  kind: "repository"
-}
-```
-
-公开站点只添加公开仓库，不写入私有仓库名称、链接、内部路径或敏感环境信息。
-
-### 独立长文章
-
-`knowledge/articles/` 保留给需要独立 URL、较长篇幅或更适合连续阅读的文章。它们是补充入口，不是知识库阅读的必经层级。
-
-## 当前知识分类
-
-- LeetCode Notes
-- Machine Learning
-- Robotics & Reinforcement Learning
-- Linux & Tooling
-- Engineering Practice
-
-力扣笔记当前覆盖二分、滑动窗口、DFS / BFS、并查集、拓扑排序和动态规划，并直接在知识库正文中展开。
-
-当前版本继续保持零构建依赖，不引入 Jekyll、Astro、Vite 或其他站点框架。
+公开站点不得写入私有仓库名称、链接、内部路径或敏感环境信息。
