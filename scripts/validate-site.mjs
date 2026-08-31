@@ -99,6 +99,14 @@ async function validateHomepageAdaptiveGrid() {
     errors.push("index.html: adaptive grid stylesheet is not loaded");
   }
 
+  if (!homepage.includes('class="brand-avatar"')) {
+    errors.push("index.html: the top-left brand must use the profile avatar");
+  }
+
+  if (/class=["'][^"']*\bhero-profile\b/.test(homepage)) {
+    errors.push("index.html: duplicate large hero profile card must be removed");
+  }
+
   if (!(await exists(adaptiveCssPath))) {
     return;
   }
