@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ page.description | default: page.title | escape }}">
+  <meta name="theme-color" content="#f7f8fb">
+  <meta property="og:title" content="{{ page.title | escape }} · Chenyinhong">
+  <meta property="og:description" content="{{ page.description | default: page.title | escape }}">
+  <meta property="og:type" content="article">
+  <link rel="canonical" href="{{ page.url | absolute_url }}">
+  <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/assets/css/round2.css' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/assets/css/markdown.css' | relative_url }}">
+  <title>{{ page.title }} · Chenyinhong</title>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <header class="site-header">
+    <div class="container nav-shell">
+      <a class="brand" href="{{ '/' | relative_url }}" aria-label="返回主页">
+        <span class="brand-mark" aria-hidden="true">CYH</span>
+        <span>Chenyinhong</span>
+      </a>
+
+      <button class="nav-control icon-button nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav" aria-label="打开导航">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+
+      <nav class="nav-links" id="site-nav" data-nav-menu aria-label="主导航">
+        <a href="{{ '/' | relative_url }}">主页</a>
+        <a href="{{ '/knowledge/' | relative_url }}" aria-current="page">知识库</a>
+        <a href="https://github.com/avengerdsf" target="_blank">GitHub</a>
+        <button class="nav-control icon-button" type="button" data-theme-toggle aria-label="切换主题">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.64 5.64 7.2 7.2M16.8 16.8l1.56 1.56M18.36 5.64 16.8 7.2M7.2 16.8l-1.56 1.56" />
+            <circle cx="12" cy="12" r="4.2" />
+          </svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="markdown-page">
+    <article class="markdown-shell">
+      <header class="markdown-header">
+        <p class="eyebrow">{{ page.kicker | default: "Knowledge Project" }}</p>
+        <h1>{{ page.title }}</h1>
+        {% if page.description %}<p>{{ page.description }}</p>{% endif %}
+      </header>
+
+      <div class="markdown-body">
+        {{ content }}
+      </div>
+
+      {% if page.source_url %}
+      <footer class="markdown-source">
+        <span>{{ page.source_label | default: "Source" }}</span>
+        <a class="button button-ghost" href="{{ page.source_url }}" target="_blank">查看公开源仓库 ↗</a>
+      </footer>
+      {% endif %}
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© <span data-current-year>2026</span> Chenyinhong · Knowledge Base.</span>
+      <div class="footer-links">
+        <a href="{{ '/knowledge/' | relative_url }}">知识库</a>
+        <a href="https://github.com/avengerdsf" target="_blank">GitHub ↗</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{{ '/assets/js/site.js' | relative_url }}" defer></script>
+</body>
+</html>
