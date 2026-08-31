@@ -10,6 +10,7 @@ const requiredFiles = [
   "knowledge/articles/reinforcement-learning-workflow.html",
   "knowledge/articles/linux-engineering-toolbox.html",
   "assets/css/site.css",
+  "assets/css/adaptive-grid.css",
   "assets/js/site.js",
   "assets/js/knowledge-data.js",
   "assets/js/knowledge.js",
@@ -89,6 +90,33 @@ async function validateRequiredFiles() {
   }
 }
 
+async function validateHomepageAdaptiveGrid() {
+  const homepagePath = path.join(root, "index.html");
+  const adaptiveCssPath = path.join(root, "assets/css/adaptive-grid.css");
+  const homepage = await readFile(homepagePath, "utf8");
+
+  if (!homepage.includes('href="assets/css/adaptive-grid.css"')) {
+    errors.push("index.html: adaptive grid stylesheet is not loaded");
+  }
+
+  if (!(await exists(adaptiveCssPath))) {
+    return;
+  }
+
+  const adaptiveCss = await readFile(adaptiveCssPath, "utf8");
+  if (!/\.adaptive-grid\s*\{[^}]*grid-template-columns\s*:\s*repeat\(auto-fit,\s*minmax\(/s.test(adaptiveCss)) {
+    errors.push("assets/css/adaptive-grid.css: .adaptive-grid must use auto-fit + minmax for fluid columns");
+  }
+
+  const adaptiveSections = ["project-grid", "card-grid", "capability-flow", "now-stack", "home-direct-knowledge"];
+  for (const sectionClass of adaptiveSections) {
+    const pattern = new RegExp(`class=["'][^"']*\\b${sectionClass}\\b[^"']*\\badaptive-grid\\b[^"']*["']`);
+    if (!pattern.test(homepage)) {
+      errors.push(`index.html: ${sectionClass} must opt in to adaptive-grid`);
+    }
+  }
+}
+
 async function validateHtmlFile(file) {
   const content = await readFile(file, "utf8");
   const fileLabel = relative(file);
@@ -120,6 +148,7 @@ async function validateHtmlFile(file) {
 }
 
 await validateRequiredFiles();
+await validateHomepageAdaptiveGrid();
 const htmlFiles = await collectHtmlFiles(root);
 for (const file of htmlFiles) {
   await validateHtmlFile(file);
