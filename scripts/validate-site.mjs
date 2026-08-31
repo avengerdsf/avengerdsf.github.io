@@ -14,6 +14,7 @@ const requiredSourceFiles = [
   "assets/css/site.css",
   "assets/css/markdown.css",
   "assets/js/site.js",
+  "assets/js/knowledge-index.js",
 ];
 const requiredBuiltFiles = [
   "index.html",
@@ -23,6 +24,7 @@ const requiredBuiltFiles = [
   "assets/css/site.css",
   "assets/css/markdown.css",
   "assets/js/site.js",
+  "assets/js/knowledge-index.js",
 ];
 const errors = [];
 
