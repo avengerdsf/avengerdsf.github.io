@@ -1,4 +1,24 @@
 const THEME_KEY = "avengerdsf-site-theme";
+const SITE_SCRIPT_URL = document.currentScript?.src || "";
+
+function initLayoutStyles() {
+  if (!SITE_SCRIPT_URL) {
+    return;
+  }
+
+  const href = new URL("../css/wide-desktop.css", SITE_SCRIPT_URL).href;
+  const alreadyLoaded = [...document.querySelectorAll('link[rel="stylesheet"]')].some((link) => link.href === href);
+  if (alreadyLoaded) {
+    return;
+  }
+
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  document.head.appendChild(link);
+}
+
+initLayoutStyles();
 
 function getPreferredTheme() {
   const savedTheme = window.localStorage.getItem(THEME_KEY);

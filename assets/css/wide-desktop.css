@@ -1,0 +1,60 @@
+@media (min-width: 1180px) {
+  .container {
+    width: min(calc(100% - 96px), 1600px);
+  }
+
+  .site-header .nav-shell {
+    width: calc(100% - 72px);
+    max-width: none;
+  }
+
+  .hero-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(360px, 0.6fr);
+    gap: clamp(64px, 5vw, 112px);
+  }
+
+  .hero-copy {
+    max-width: 780px;
+  }
+
+  .profile-card {
+    width: min(100%, 400px);
+  }
+
+  .section-title {
+    max-width: 820px;
+  }
+
+  .now-layout {
+    grid-template-columns: minmax(360px, 0.72fr) minmax(0, 1.28fr);
+    gap: 22px;
+  }
+
+  .project-grid,
+  .knowledge-preview {
+    gap: 22px;
+  }
+}
+
+@media (min-width: 2100px) {
+  .container {
+    width: min(calc(100% - 160px), 1920px);
+  }
+
+  .site-header .nav-shell {
+    width: calc(100% - 96px);
+  }
+
+  .hero-grid {
+    grid-template-columns: minmax(0, 1.5fr) minmax(390px, 0.5fr);
+    gap: 120px;
+  }
+
+  .profile-card {
+    width: min(100%, 430px);
+  }
+
+  .now-layout {
+    grid-template-columns: minmax(420px, 0.68fr) minmax(0, 1.32fr);
+  }
+}
