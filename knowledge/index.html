@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Chenyinhong 的个人技术知识库：机器学习、人形机器人与强化学习、Linux 工具以及工程实践。">
+  <meta name="theme-color" content="#f7f8fb">
+  <meta property="og:title" content="Knowledge Base · Chenyinhong">
+  <meta property="og:description" content="可检索的机器学习、机器人强化学习、Linux 工具与工程实践知识索引。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://avengerdsf.github.io/knowledge/">
+  <link rel="canonical" href="https://avengerdsf.github.io/knowledge/">
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <title>Knowledge Base · Chenyinhong</title>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <header class="site-header">
+    <div class="container nav-shell">
+      <a class="brand" href="../" aria-label="返回主页">
+        <span class="brand-mark" aria-hidden="true">CYH</span>
+        <span>Chenyinhong</span>
+      </a>
+
+      <button class="nav-control icon-button nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav" aria-label="打开导航">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+
+      <nav class="nav-links" id="site-nav" data-nav-menu aria-label="主导航">
+        <a href="../">主页</a>
+        <a href="./" aria-current="page">知识库</a>
+        <a href="https://github.com/avengerdsf" target="_blank">GitHub</a>
+        <button class="nav-control icon-button" type="button" data-theme-toggle aria-label="切换主题">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.64 5.64 7.2 7.2M16.8 16.8l1.56 1.56M18.36 5.64 16.8 7.2M7.2 16.8l-1.56 1.56" />
+            <circle cx="12" cy="12" r="4.2" />
+          </svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="page-hero">
+      <div class="container reveal">
+        <p class="eyebrow">Personal Knowledge Base</p>
+        <h1>知识不是收藏夹，而是能再次找到、再次使用的结构。</h1>
+        <p>这里把公开学习笔记、机器人强化学习工程、Linux 工具与软件工程实践统一到一个入口。搜索用于快速定位，分类用于建立长期知识结构。</p>
+      </div>
+    </section>
+
+    <section class="section section-tight">
+      <div class="container">
+        <div class="search-panel reveal" aria-label="知识库搜索与筛选">
+          <div class="search-row">
+            <label class="search-box">
+              <span class="skip-link">搜索知识库</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <circle cx="11" cy="11" r="6.5" />
+                <path d="m16 16 4 4" />
+              </svg>
+              <input class="search-input" type="search" placeholder="搜索 PPO、PyTorch、Ubuntu、Electron…" autocomplete="off" data-knowledge-search aria-label="搜索知识库">
+            </label>
+          </div>
+          <div class="filter-row" data-filter-row aria-label="知识分类"></div>
+        </div>
+
+        <div class="results-meta">
+          <span data-result-count aria-live="polite">正在加载内容…</span>
+          <span>文章 + 公开仓库</span>
+        </div>
+
+        <div class="knowledge-grid" data-knowledge-grid></div>
+
+        <div class="empty-state" data-empty-state>
+          <h2>没有匹配内容</h2>
+          <p>换一个关键词，或清除当前分类与搜索条件。</p>
+          <button class="button" type="button" data-reset-search>清除筛选</button>
+        </div>
+
+        <noscript>
+          <div class="fallback-links">
+            <strong>当前浏览器未启用 JavaScript。</strong>
+            <p>仍然可以从下面的固定入口访问主要内容：</p>
+            <ul>
+              <li><a href="articles/machine-learning-roadmap.html">机器学习学习路线</a></li>
+              <li><a href="articles/reinforcement-learning-workflow.html">强化学习工程工作流</a></li>
+              <li><a href="articles/linux-engineering-toolbox.html">Linux 工程工具箱</a></li>
+              <li><a href="https://github.com/avengerdsf/machine-learning-notes">Machine Learning Notes</a></li>
+              <li><a href="https://github.com/avengerdsf/agibot_rl_mjlab">AgiBot RL Mjlab</a></li>
+            </ul>
+          </div>
+        </noscript>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <span>© <span data-current-year>2026</span> Chenyinhong · Knowledge Base.</span>
+      <div class="footer-links">
+        <a href="../">主页</a>
+        <a href="https://github.com/avengerdsf" target="_blank">GitHub ↗</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/js/site.js" defer></script>
+  <script src="../assets/js/knowledge.js" type="module"></script>
+</body>
+</html>
