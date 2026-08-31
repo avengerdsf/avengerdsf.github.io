@@ -252,6 +252,17 @@ function initTopicCards() {
   });
 }
 
+function scrollToInitialHash() {
+  const id = decodeURIComponent(window.location.hash.slice(1));
+  if (!id) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    document.getElementById(id)?.scrollIntoView({ block: "start" });
+  });
+}
+
 function initKnowledgeSearch() {
   const searchInput = document.querySelector("[data-knowledge-search]");
   const resetButton = document.querySelector("[data-reset-search]");
@@ -277,6 +288,7 @@ function initKnowledgeSearch() {
 
   initTopicCards();
   render();
+  scrollToInitialHash();
 }
 
 document.addEventListener("DOMContentLoaded", initKnowledgeSearch);
