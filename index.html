@@ -13,6 +13,7 @@
   <link rel="canonical" href="https://avengerdsf.github.io/">
   <link rel="stylesheet" href="assets/css/site.css">
   <link rel="stylesheet" href="assets/css/round2.css">
+  <link rel="stylesheet" href="assets/css/adaptive-grid.css">
   <title>Chenyinhong · Robotics, RL & Engineering</title>
 </head>
 <body>
@@ -21,7 +22,7 @@
   <header class="site-header">
     <div class="container nav-shell">
       <a class="brand" href="./" aria-label="返回主页">
-        <span class="brand-mark" aria-hidden="true">CYH</span>
+        <img class="brand-avatar" src="https://avatars.githubusercontent.com/u/119413549?v=4" alt="" width="34" height="34">
         <span>Chenyinhong</span>
       </a>
 
@@ -73,20 +74,6 @@
             <span class="tag">Algorithms</span>
           </div>
         </div>
-
-        <aside class="hero-profile reveal" aria-label="个人资料">
-          <div class="profile-orbit" aria-hidden="true"></div>
-          <div class="profile-card">
-            <img class="profile-avatar" src="https://avatars.githubusercontent.com/u/119413549?v=4" alt="Chenyinhong 的 GitHub 头像" width="304" height="304">
-            <div class="profile-meta">
-              <div>
-                <strong>@avengerdsf</strong>
-                <div class="status-dot">Building & learning</div>
-              </div>
-              <a class="text-link" href="https://github.com/avengerdsf" target="_blank" aria-label="打开 avengerdsf 的 GitHub 主页">↗</a>
-            </div>
-          </div>
-        </aside>
       </div>
     </section>
 
@@ -104,7 +91,7 @@
           </div>
         </div>
 
-        <div class="now-stack">
+        <div class="now-stack adaptive-grid">
           <article class="now-card reveal">
             <span class="now-card-label">Research</span>
             <h3>人形机器人运动控制与复杂地形适应</h3>
@@ -135,7 +122,7 @@
         </div>
 
         <div class="capability-map reveal">
-          <div class="capability-flow">
+          <div class="capability-flow adaptive-grid">
             <article class="capability-node">
               <span>01 / MODEL</span>
               <strong>问题建模</strong>
@@ -172,7 +159,7 @@
           <a class="text-link" href="https://github.com/avengerdsf?tab=repositories" target="_blank">全部仓库 ↗</a>
         </div>
 
-        <div class="project-grid">
+        <div class="project-grid adaptive-grid">
           <a class="project-card reveal" href="https://github.com/avengerdsf/agibot_rl_mjlab" target="_blank">
             <div class="project-topline"><span>Robotics / RL</span><span>Public</span></div>
             <h3>AgiBot RL Mjlab</h3>
@@ -223,7 +210,7 @@
           <a class="text-link" href="knowledge/#leetcode-core-patterns">查看完整笔记 →</a>
         </div>
 
-        <div class="card-grid">
+        <div class="card-grid adaptive-grid">
           <article class="focus-card reveal"><span class="card-index">01 / BINARY SEARCH</span><h3>二分查找</h3><p>闭区间与半开区间、左右边界、答案区间与收缩规则。</p></article>
           <article class="focus-card reveal"><span class="card-index">02 / WINDOW</span><h3>滑动窗口</h3><p>窗口合法条件、左右指针更新、一次合法状态如何统计答案。</p></article>
           <article class="focus-card reveal"><span class="card-index">03 / GRAPH</span><h3>DFS / BFS</h3><p>父节点与 visited、多源 BFS、最短无权路径和递归状态。</p></article>
@@ -243,7 +230,7 @@
           <a class="button" href="knowledge/">打开知识库 →</a>
         </div>
 
-        <div class="home-direct-knowledge">
+        <div class="home-direct-knowledge adaptive-grid">
           <div class="home-direct-note reveal"><strong>力扣高频算法笔记</strong><p>二分、滑窗、DFS/BFS、并查集、拓扑排序、动态规划。</p><div class="tag-row"><span class="tag">Algorithms</span><span class="tag">LeetCode</span></div></div>
           <div class="home-direct-note reveal"><strong>GDB 调试工作流</strong><p>断点、单步、变量、调用栈、多线程和 commands。</p><div class="tag-row"><span class="tag">GDB</span><span class="tag">Debug</span></div></div>
           <div class="home-direct-note reveal"><strong>强化学习工程工作流</strong><p>机器人配置、PPO、train/play、MuJoCo 和策略验证。</p><div class="tag-row"><span class="tag">PPO</span><span class="tag">MuJoCo</span></div></div>
