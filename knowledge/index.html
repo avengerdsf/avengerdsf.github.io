@@ -3,16 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Chenyinhong 的个人技术知识库：力扣算法、机器学习、人形机器人与强化学习、Linux 工具以及工程实践。">
+  <meta name="description" content="Chenyinhong 的个人知识库：力扣笔记与 Machine Learning Notes。">
   <meta name="theme-color" content="#f7f8fb">
   <meta property="og:title" content="Knowledge Base · Chenyinhong">
-  <meta property="og:description" content="可直接阅读与检索的力扣、机器学习、机器人强化学习、Linux 工具与工程实践知识库。">
+  <meta property="og:description" content="两个持续维护的笔记项目：力扣算法笔记与机器学习笔记。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://avengerdsf.github.io/knowledge/">
   <link rel="canonical" href="https://avengerdsf.github.io/knowledge/">
   <link rel="stylesheet" href="../assets/css/site.css">
   <link rel="stylesheet" href="../assets/css/round2.css">
-  <style>.knowledge-search-panel{top:calc(var(--header-height) + 14px)}</style>
   <title>Knowledge Base · Chenyinhong</title>
 </head>
 <body>
@@ -34,7 +33,8 @@
       <nav class="nav-links" id="site-nav" data-nav-menu aria-label="主导航">
         <a href="../">主页</a>
         <a href="./" aria-current="page">知识库</a>
-        <a href="#leetcode-core-patterns">力扣</a>
+        <a href="leetcode/">力扣笔记</a>
+        <a href="machine-learning/">机器学习</a>
         <a href="https://github.com/avengerdsf" target="_blank">GitHub</a>
         <button class="nav-control icon-button" type="button" data-theme-toggle aria-label="切换主题">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -49,82 +49,66 @@
   <main id="main">
     <section class="page-hero knowledge-page-hero">
       <div class="container reveal">
-        <p class="eyebrow">Personal Knowledge Base</p>
-        <h1>知识直接放在这里读，不再让目录变成第二层跳转。</h1>
-        <p>搜索与分类只负责定位，命中的笔记正文直接展开。公开仓库作为来源与完整上下文保留在对应笔记底部。</p>
+        <p class="eyebrow">Knowledge Projects</p>
+        <h1>知识库</h1>
+        <p>这里只放持续维护的笔记项目。软件项目和技术主题不因为使用了某项技术就自动成为“笔记”。</p>
       </div>
     </section>
 
     <section class="section section-tight">
       <div class="container">
-        <div class="topic-overview reveal" aria-label="知识主题快捷入口">
-          <button class="topic-card" type="button" data-topic-category="LeetCode Notes" aria-pressed="false">
-            <span>01 / LEETCODE</span>
-            <strong>力扣算法笔记</strong>
-            <p>二分、滑窗、图、并查集、拓扑与 DP。</p>
-          </button>
-          <button class="topic-card" type="button" data-topic-category="Robotics & Reinforcement Learning" aria-pressed="false">
-            <span>02 / ROBOTICS</span>
-            <strong>机器人与强化学习</strong>
-            <p>训练、回放、仿真与策略迁移。</p>
-          </button>
-          <button class="topic-card" type="button" data-topic-category="Linux & Tooling" aria-pressed="false">
-            <span>03 / SYSTEMS</span>
-            <strong>Linux 与调试</strong>
-            <p>GDB、Bash、Git SSH 与工程工具。</p>
-          </button>
-          <button class="topic-card" type="button" data-topic-category="Machine Learning" aria-pressed="false">
-            <span>04 / ML</span>
-            <strong>机器学习</strong>
-            <p>监督学习、深度学习、树模型与无监督学习。</p>
-          </button>
-          <button class="topic-card" type="button" data-topic-category="Engineering Practice" aria-pressed="false">
-            <span>05 / ENGINEERING</span>
-            <strong>工程实践</strong>
-            <p>桌面应用、数据流程与产品化实现。</p>
-          </button>
-        </div>
-
-        <div class="search-panel reveal knowledge-search-panel" aria-label="知识库搜索与筛选">
+        <div class="search-panel reveal knowledge-search-panel" aria-label="搜索笔记项目">
           <div class="search-row">
             <label class="search-box">
-              <span class="skip-link">搜索知识库</span>
+              <span class="skip-link">搜索笔记项目</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <circle cx="11" cy="11" r="6.5" />
                 <path d="m16 16 4 4" />
               </svg>
-              <input class="search-input" type="search" placeholder="搜索二分、PPO、GDB、Ubuntu、PyTorch…" autocomplete="off" data-knowledge-search aria-label="搜索知识库">
+              <input class="search-input" type="search" placeholder="搜索力扣、二分、Machine Learning、PyTorch…" autocomplete="off" data-knowledge-search aria-label="搜索笔记项目">
             </label>
           </div>
-          <div class="filter-row" data-filter-row aria-label="知识分类"></div>
         </div>
 
         <div class="results-meta knowledge-results-meta">
-          <span data-result-count aria-live="polite">正在加载内容…</span>
-          <span>正文直接展开 · 公开仓库只作为来源</span>
+          <span data-result-count aria-live="polite">2 个笔记项目</span>
+          <span>一个笔记项目一个子页 · Markdown 构建渲染</span>
         </div>
 
-        <div class="knowledge-inline-list" data-knowledge-grid></div>
+        <div class="project-grid" data-knowledge-grid>
+          <a class="project-card knowledge-project-card" href="leetcode/" data-knowledge-project data-search-text="力扣 leetcode algorithms c++ 二分 滑动窗口 dfs bfs 并查集 拓扑排序 dp 动态规划">
+            <div class="project-topline">
+              <span>01 / LEETCODE</span>
+              <span>Site Markdown</span>
+            </div>
+            <h3>力扣笔记</h3>
+            <p>按算法模式整理题型、边界、状态定义与常见错误。</p>
+            <div class="tag-row">
+              <span class="tag">Algorithms</span>
+              <span class="tag">C++</span>
+            </div>
+            <div class="card-footer"><span>打开笔记</span><span>→</span></div>
+          </a>
+
+          <a class="project-card knowledge-project-card" href="machine-learning/" data-knowledge-project data-search-text="机器学习 machine learning supervised deep learning model evaluation decision trees unsupervised pytorch">
+            <div class="project-topline">
+              <span>02 / MACHINE LEARNING</span>
+              <span>Public Notes</span>
+            </div>
+            <h3>Machine Learning Notes</h3>
+            <p>监督学习、深度学习、模型评估、决策树与无监督学习。</p>
+            <div class="tag-row">
+              <span class="tag">Machine Learning</span>
+              <span class="tag">PyTorch</span>
+            </div>
+            <div class="card-footer"><span>打开笔记</span><span>→</span></div>
+          </a>
+        </div>
 
         <div class="empty-state" data-empty-state>
-          <h2>没有匹配内容</h2>
-          <p>换一个关键词，或清除当前分类与搜索条件。</p>
-          <button class="button" type="button" data-reset-search>清除筛选</button>
+          <h2>没有匹配的笔记项目</h2>
+          <p>当前知识库只有力扣笔记和 Machine Learning Notes。</p>
         </div>
-
-        <noscript>
-          <div class="fallback-links">
-            <strong>当前浏览器未启用 JavaScript。</strong>
-            <p>可以直接访问下面的固定文章入口：</p>
-            <ul>
-              <li><a href="articles/gdb-debugging-workflow.html">GDB 调试工作流</a></li>
-              <li><a href="articles/bash-history-reliability.html">Bash 历史命令可靠记录</a></li>
-              <li><a href="articles/git-ssh-troubleshooting.html">GitHub SSH 443 排障</a></li>
-              <li><a href="articles/machine-learning-roadmap.html">机器学习学习路线</a></li>
-              <li><a href="articles/reinforcement-learning-workflow.html">强化学习工程工作流</a></li>
-            </ul>
-          </div>
-        </noscript>
       </div>
     </section>
   </main>
@@ -140,6 +124,6 @@
   </footer>
 
   <script src="../assets/js/site.js" defer></script>
-  <script src="../assets/js/knowledge.js" type="module"></script>
+  <script src="../assets/js/knowledge-index.js" defer></script>
 </body>
 </html>
