@@ -1,0 +1,67 @@
+.adaptive-grid {
+  --adaptive-card-min: 240px;
+  --adaptive-grid-gap: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--adaptive-card-min)), 1fr));
+  gap: var(--adaptive-grid-gap);
+}
+
+.project-grid {
+  --adaptive-card-min: 320px;
+}
+
+.card-grid {
+  --adaptive-card-min: 250px;
+}
+
+.capability-flow {
+  --adaptive-card-min: 220px;
+}
+
+.now-stack {
+  --adaptive-card-min: 230px;
+}
+
+.home-direct-knowledge {
+  --adaptive-card-min: 260px;
+}
+
+.now-card:first-child {
+  grid-column: auto;
+}
+
+.capability-node::after {
+  display: none !important;
+}
+
+.hero-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.hero-grid > .reveal {
+  max-width: 900px;
+}
+
+.brand-avatar {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 11px;
+  object-fit: cover;
+  background: var(--surface-muted);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 420px) {
+  .adaptive-grid {
+    --adaptive-grid-gap: 14px;
+  }
+
+  .project-card,
+  .focus-card,
+  .capability-node,
+  .now-card,
+  .home-direct-note {
+    min-width: 0;
+  }
+}
