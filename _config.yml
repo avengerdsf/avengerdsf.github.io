@@ -1,0 +1,11 @@
+title: Chenyinhong Knowledge Base
+url: https://avengerdsf.github.io
+baseurl: ""
+markdown: kramdown
+kramdown:
+  input: GFM
+exclude:
+  - docs
+  - scripts
+  - README.md
+  - .github
