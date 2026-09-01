@@ -7,8 +7,6 @@ const requiredFiles = [
   "index.html",
   "knowledge/index.html",
   "knowledge/articles/machine-learning-roadmap.html",
-  "knowledge/articles/reinforcement-learning-workflow.html",
-  "knowledge/articles/linux-engineering-toolbox.html",
   "assets/css/site.css",
   "assets/css/adaptive-grid.css",
   "assets/js/site.js",
@@ -116,12 +114,67 @@ async function validateHomepageAdaptiveGrid() {
     errors.push("assets/css/adaptive-grid.css: .adaptive-grid must use auto-fit + minmax for fluid columns");
   }
 
-  const adaptiveSections = ["project-grid", "card-grid", "capability-flow", "now-stack", "home-direct-knowledge"];
+  const adaptiveSections = ["project-grid", "capability-flow", "now-stack", "home-direct-knowledge"];
   for (const sectionClass of adaptiveSections) {
     const pattern = new RegExp(`class=["'][^"']*\\b${sectionClass}\\b[^"']*\\badaptive-grid\\b[^"']*["']`);
     if (!pattern.test(homepage)) {
       errors.push(`index.html: ${sectionClass} must opt in to adaptive-grid`);
     }
+  }
+}
+
+async function validateContentTaxonomy() {
+  const homepage = await readFile(path.join(root, "index.html"), "utf8");
+  const knowledgePage = await readFile(path.join(root, "knowledge/index.html"), "utf8");
+  const knowledgeData = await readFile(path.join(root, "assets/js/knowledge-data.js"), "utf8");
+
+  if (homepage.includes('href="#leetcode"') || /<section[^>]+id=["']leetcode["']/.test(homepage)) {
+    errors.push("index.html: LeetCode must be merged into the knowledge base instead of remaining a top-level section");
+  }
+
+  const projectCards = [...homepage.matchAll(/class=["'][^"']*\bproject-card\b[^"']*["']/g)].length;
+  if (projectCards !== 4) {
+    errors.push(`index.html: expected exactly 4 project cards, found ${projectCards}`);
+  }
+
+  const requiredProjectRepos = ["agibot_rl_mjlab", "invoice-manager", "Tmux-generator", "ubuntu_toolbox"];
+  for (const repo of requiredProjectRepos) {
+    if (!homepage.includes(`github.com/avengerdsf/${repo}`)) {
+      errors.push(`index.html: missing project repository ${repo}`);
+    }
+  }
+
+  if (homepage.includes('github.com/avengerdsf/machine-learning-notes') && homepage.indexOf('github.com/avengerdsf/machine-learning-notes') < homepage.indexOf('id="knowledge"')) {
+    errors.push("index.html: machine-learning-notes must not be presented as a project");
+  }
+
+  const forbiddenKnowledgeIds = [
+    "gdb-debugging-workflow",
+    "bash-history-reliability",
+    "git-ssh-troubleshooting",
+    "reinforcement-learning-workflow",
+    "linux-engineering-toolbox",
+    "invoice-manager-engineering",
+    "agibot-repo",
+    "ubuntu-toolbox-repo",
+  ];
+  for (const id of forbiddenKnowledgeIds) {
+    if (knowledgeData.includes(`id: "${id}"`)) {
+      errors.push(`assets/js/knowledge-data.js: unrelated knowledge entry remains: ${id}`);
+    }
+  }
+
+  for (const category of ["Robotics & Reinforcement Learning", "Linux & Tooling", "Engineering Practice"]) {
+    if (knowledgeData.includes(`"${category}"`) || knowledgePage.includes(`data-topic-category="${category}"`)) {
+      errors.push(`knowledge base: unrelated category remains: ${category}`);
+    }
+  }
+
+  if (!knowledgeData.includes('id: "leetcode-core-patterns"')) {
+    errors.push("assets/js/knowledge-data.js: missing LeetCode knowledge entry");
+  }
+  if (!knowledgeData.includes('source: "machine-learning-notes"')) {
+    errors.push("assets/js/knowledge-data.js: missing machine-learning-notes knowledge source");
   }
 }
 
@@ -157,6 +210,7 @@ async function validateHtmlFile(file) {
 
 await validateRequiredFiles();
 await validateHomepageAdaptiveGrid();
+await validateContentTaxonomy();
 const htmlFiles = await collectHtmlFiles(root);
 for (const file of htmlFiles) {
   await validateHtmlFile(file);
