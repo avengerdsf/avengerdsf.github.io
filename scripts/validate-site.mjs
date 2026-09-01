@@ -166,6 +166,18 @@ async function validateSourceArchitecture() {
     if (!knowledgePage.includes("<!-- KNOWLEDGE_CONTENT -->")) {
       errors.push("knowledge/index.html: missing build-time KNOWLEDGE_CONTENT marker");
     }
+    if (!knowledgePage.includes('data-knowledge-search-form')) {
+      errors.push("knowledge/index.html: search must use the compact embedded-button form");
+    }
+    if (!knowledgePage.includes('data-knowledge-search-submit')) {
+      errors.push("knowledge/index.html: search submit button must live inside the search field");
+    }
+    if (knowledgePage.includes("01 / LEETCODE") || knowledgePage.includes("02 / ML")) {
+      errors.push("knowledge/index.html: topic cards must not add redundant small-code labels");
+    }
+    if (knowledgePage.includes("Index → Article Subpage → Source Markdown")) {
+      errors.push("knowledge/index.html: remove redundant directory pipeline microcopy");
+    }
   }
 
   if (await exists(path.join(root, "assets/js/knowledge-data.js"))) {
@@ -203,6 +215,18 @@ async function validateBuiltKnowledge() {
   }
   if (knowledgePage.includes('class="markdown-body') || knowledgePage.includes('class="katex')) {
     errors.push("knowledge/index.html: article bodies/formulas must live on subpages, not the index");
+  }
+  if (knowledgePage.includes('class="knowledge-card-meta"')) {
+    errors.push("knowledge/index.html: article cards must not repeat category/source-path metadata");
+  }
+  if (knowledgePage.includes('class="knowledge-card-open"')) {
+    errors.push("knowledge/index.html: article cards must not add redundant read-note microcopy");
+  }
+  if (/<div class="knowledge-chapter-head">\s*<span>/s.test(knowledgePage)) {
+    errors.push("knowledge/index.html: chapter headings must be plain section titles without source-label microcopy");
+  }
+  if (/<header class="knowledge-source-header">\s*<p class="eyebrow">/s.test(knowledgePage)) {
+    errors.push("knowledge/index.html: source headings must not repeat category eyebrow labels");
   }
 
   const mlCards = [...knowledgePage.matchAll(/data-category=["']Machine Learning["'][^>]*data-knowledge-entry/g)].length;
