@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Chenyinhong 的个人技术知识库：Machine Learning Notes 与力扣算法笔记。">
+  <meta name="description" content="Chenyinhong 的个人技术知识库：直接渲染 Machine Learning Notes 与力扣算法 Markdown。">
   <meta name="theme-color" content="#f7f8fb">
   <meta property="og:title" content="Knowledge Base · Chenyinhong">
-  <meta property="og:description" content="可直接阅读与检索的机器学习与力扣算法知识库。">
+  <meta property="og:description" content="构建时从真实 Markdown 源生成的机器学习与力扣算法知识库。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://avengerdsf.github.io/knowledge/">
   <link rel="canonical" href="https://avengerdsf.github.io/knowledge/">
   <link rel="stylesheet" href="../assets/css/site.css">
   <link rel="stylesheet" href="../assets/css/round2.css">
+  <link rel="stylesheet" href="../assets/css/knowledge-markdown.css">
+  <!-- KATEX_CSS -->
   <style>.knowledge-search-panel{top:calc(var(--header-height) + 14px)}</style>
   <title>Knowledge Base · Chenyinhong</title>
 </head>
@@ -21,7 +23,7 @@
   <header class="site-header">
     <div class="container nav-shell">
       <a class="brand" href="../" aria-label="返回主页">
-        <span class="brand-mark" aria-hidden="true">CYH</span>
+        <img class="brand-avatar" src="https://avatars.githubusercontent.com/u/119413549?v=4" alt="" width="34" height="34">
         <span>Chenyinhong</span>
       </a>
 
@@ -34,8 +36,8 @@
       <nav class="nav-links" id="site-nav" data-nav-menu aria-label="主导航">
         <a href="../">主页</a>
         <a href="./" aria-current="page">知识库</a>
-        <a href="#leetcode-core-patterns">力扣</a>
-        <a href="#machine-learning-roadmap">机器学习</a>
+        <a href="#leetcode">力扣</a>
+        <a href="#machine-learning">机器学习</a>
         <a href="https://github.com/avengerdsf" target="_blank">GitHub</a>
         <button class="nav-control icon-button" type="button" data-theme-toggle aria-label="切换主题">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -51,8 +53,8 @@
     <section class="page-hero knowledge-page-hero">
       <div class="container reveal">
         <p class="eyebrow">Personal Knowledge Base</p>
-        <h1>知识直接放在这里读，不再让目录变成第二层跳转。</h1>
-        <p>当前知识库只收录已有的 Machine Learning Notes 与力扣算法笔记；搜索和分类只负责定位，命中的正文直接展开。</p>
+        <h1>直接读取 Markdown，不再维护第二份笔记正文。</h1>
+        <p>Machine Learning 内容在构建时从 <code>avengerdsf/machine-learning-notes</code> 同步；力扣笔记来自本站 Markdown 源。搜索与筛选只操作已经生成的正文。</p>
       </div>
     </section>
 
@@ -62,12 +64,12 @@
           <button class="topic-card" type="button" data-topic-category="LeetCode Notes" aria-pressed="false">
             <span>01 / LEETCODE</span>
             <strong>力扣算法笔记</strong>
-            <p>二分、滑窗、图、并查集、拓扑与 DP。</p>
+            <p>二分、滑窗、DFS/BFS、并查集、拓扑与 DP。</p>
           </button>
           <button class="topic-card" type="button" data-topic-category="Machine Learning" aria-pressed="false">
             <span>02 / ML</span>
             <strong>Machine Learning Notes</strong>
-            <p>监督学习、深度学习、模型评估、树模型与无监督学习。</p>
+            <p>目录与正文均由源仓库 Markdown 生成。</p>
           </button>
         </div>
 
@@ -79,34 +81,26 @@
                 <circle cx="11" cy="11" r="6.5" />
                 <path d="m16 16 4 4" />
               </svg>
-              <input class="search-input" type="search" placeholder="搜索二分、DP、PyTorch、决策树…" autocomplete="off" data-knowledge-search aria-label="搜索知识库">
+              <input class="search-input" type="search" placeholder="搜索线性回归、XGBoost、PCA、二分、DP…" autocomplete="off" data-knowledge-search aria-label="搜索知识库">
             </label>
           </div>
           <div class="filter-row" data-filter-row aria-label="知识分类"></div>
         </div>
 
         <div class="results-meta knowledge-results-meta">
-          <span data-result-count aria-live="polite">正在加载内容…</span>
-          <span>正文直接展开 · Machine Learning Notes 保留公开源仓库链接</span>
+          <span data-result-count aria-live="polite">正文由构建流程生成</span>
+          <span>Machine Learning Notes · Build-time Markdown Sync</span>
         </div>
 
-        <div class="knowledge-inline-list" data-knowledge-grid></div>
+        <div class="knowledge-inline-list" data-knowledge-grid>
+          <!-- KNOWLEDGE_CONTENT -->
+        </div>
 
         <div class="empty-state" data-empty-state>
           <h2>没有匹配内容</h2>
           <p>换一个关键词，或清除当前分类与搜索条件。</p>
           <button class="button" type="button" data-reset-search>清除筛选</button>
         </div>
-
-        <noscript>
-          <div class="fallback-links">
-            <strong>当前浏览器未启用 JavaScript。</strong>
-            <p>可以直接查看机器学习笔记源仓库：</p>
-            <ul>
-              <li><a href="https://github.com/avengerdsf/machine-learning-notes">Machine Learning Notes ↗</a></li>
-            </ul>
-          </div>
-        </noscript>
       </div>
     </section>
   </main>
@@ -122,6 +116,6 @@
   </footer>
 
   <script src="../assets/js/site.js" defer></script>
-  <script src="../assets/js/knowledge.js" type="module"></script>
+  <script src="../assets/js/knowledge.js" defer></script>
 </body>
 </html>
