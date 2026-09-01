@@ -140,31 +140,6 @@ function createNote(entry) {
   return article;
 }
 
-function createRepository(entry) {
-  const card = document.createElement("a");
-  card.className = "knowledge-source-card reveal is-visible";
-  card.href = entry.sourceUrl;
-  card.target = "_blank";
-  card.rel = "noreferrer noopener";
-
-  const label = document.createElement("span");
-  label.className = "knowledge-meta-line";
-  label.textContent = `${entry.category} · SOURCE`;
-
-  const title = document.createElement("strong");
-  title.textContent = entry.title;
-
-  const description = document.createElement("span");
-  description.textContent = entry.description;
-
-  const arrow = document.createElement("span");
-  arrow.className = "knowledge-source-arrow";
-  arrow.textContent = "↗";
-
-  card.append(label, title, description, arrow);
-  return card;
-}
-
 function renderFilters(container) {
   container.replaceChildren();
 
@@ -203,39 +178,12 @@ function render() {
   }
 
   const matches = knowledgeEntries.filter(matchesEntry);
-  const notes = matches.filter((entry) => entry.kind === "note");
-  const repositories = matches.filter((entry) => entry.kind === "repository");
-
   const fragment = document.createDocumentFragment();
-  notes.forEach((entry) => fragment.appendChild(createNote(entry)));
-
-  if (repositories.length) {
-    const sourceSection = document.createElement("section");
-    sourceSection.className = "knowledge-source-section";
-
-    const heading = document.createElement("div");
-    heading.className = "section-head compact-section-head";
-    const headingCopy = document.createElement("div");
-    headingCopy.className = "section-title";
-    const eyebrow = document.createElement("p");
-    eyebrow.className = "eyebrow";
-    eyebrow.textContent = "Public Sources";
-    const title = document.createElement("h2");
-    title.textContent = "关联公开仓库";
-    headingCopy.append(eyebrow, title);
-    heading.appendChild(headingCopy);
-
-    const sourceGrid = document.createElement("div");
-    sourceGrid.className = "knowledge-source-grid";
-    repositories.forEach((entry) => sourceGrid.appendChild(createRepository(entry)));
-
-    sourceSection.append(heading, sourceGrid);
-    fragment.appendChild(sourceSection);
-  }
+  matches.forEach((entry) => fragment.appendChild(createNote(entry)));
 
   grid.replaceChildren(fragment);
   renderFilters(filterContainer);
-  resultCount.textContent = `${notes.length} 篇笔记 · ${repositories.length} 个公开源`;
+  resultCount.textContent = `${matches.length} 篇笔记`;
   emptyState.classList.toggle("is-visible", matches.length === 0);
   grid.hidden = matches.length === 0;
   syncTopicCards();
