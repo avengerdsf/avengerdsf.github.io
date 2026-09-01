@@ -3,6 +3,8 @@ name: Deploy static content to Pages
 on:
   push:
     branches: ["main"]
+  schedule:
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -18,14 +20,46 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout site
         uses: actions/checkout@v5
+
+      - name: Checkout machine-learning notes
+        uses: actions/checkout@v5
+        with:
+          repository: avengerdsf/machine-learning-notes
+          path: .build/machine-learning-notes
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      - name: Install Markdown build dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Validate source architecture
+        run: node scripts/validate-site.mjs --source
+
+      - name: Build knowledge from Markdown
+        run: node scripts/build-knowledge.mjs --ml-source .build/machine-learning-notes
+
+      - name: Validate generated site
+        run: node scripts/validate-site.mjs --built
+
+      - name: Stage static site
+        run: |
+          rm -rf _site
+          mkdir _site
+          cp index.html _site/
+          cp -R assets knowledge _site/
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: "."
+          path: "_site"
 
   deploy:
     environment:
