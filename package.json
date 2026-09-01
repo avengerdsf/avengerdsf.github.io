@@ -1,0 +1,15 @@
+{
+  "name": "avengerdsf-github-io",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:knowledge": "node scripts/build-knowledge.mjs --ml-source .build/machine-learning-notes",
+    "validate:source": "node scripts/validate-site.mjs --source",
+    "validate:built": "node scripts/validate-site.mjs --built"
+  },
+  "dependencies": {
+    "katex": "0.18.4",
+    "marked": "18.0.11",
+    "marked-katex-extension": "5.1.12"
+  }
+}
