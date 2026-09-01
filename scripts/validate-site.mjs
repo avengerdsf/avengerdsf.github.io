@@ -13,6 +13,7 @@ const sharedRequiredFiles = [
   "assets/css/adaptive-grid.css",
   "assets/css/round2.css",
   "assets/css/knowledge-markdown.css",
+  "assets/css/knowledge-directory.css",
   "assets/js/site.js",
   "assets/js/knowledge.js",
 ];
@@ -157,6 +158,28 @@ async function validateProjectTaxonomy() {
   }
 }
 
+async function validateKnowledgeDirectoryStyles() {
+  const cssPath = path.join(root, "assets/css/knowledge-directory.css");
+  if (!(await exists(cssPath))) return;
+  const css = await readFile(cssPath, "utf8");
+
+  if (!/\.knowledge-search-panel\s*\{[^}]*width\s*:\s*min\(100%,\s*620px\)/s.test(css)) {
+    errors.push("assets/css/knowledge-directory.css: search panel must stay compact on desktop");
+  }
+  if (!/\.knowledge-search-submit\s*\{[^}]*border-radius\s*:\s*999px/s.test(css)) {
+    errors.push("assets/css/knowledge-directory.css: search submit must be visually embedded in the field");
+  }
+  if (!/\.knowledge-card-meta,\s*\n?\.knowledge-card-open\s*\{[^}]*display\s*:\s*none/s.test(css)) {
+    errors.push("assets/css/knowledge-directory.css: card metadata/read microcopy must be hidden");
+  }
+  if (!/\.knowledge-chapter-head span\s*\{[^}]*display\s*:\s*none/s.test(css)) {
+    errors.push("assets/css/knowledge-directory.css: chapter source-label microcopy must be hidden");
+  }
+  if (!/\.knowledge-source-header \.eyebrow,\s*\n?\.knowledge-source-header > p:last-child\s*\{[^}]*display\s*:\s*none/s.test(css)) {
+    errors.push("assets/css/knowledge-directory.css: repeated source/category microcopy must be hidden");
+  }
+}
+
 async function validateSourceArchitecture() {
   if (mode !== "source") return;
 
@@ -165,6 +188,9 @@ async function validateSourceArchitecture() {
     const knowledgePage = await readFile(knowledgePagePath, "utf8");
     if (!knowledgePage.includes("<!-- KNOWLEDGE_CONTENT -->")) {
       errors.push("knowledge/index.html: missing build-time KNOWLEDGE_CONTENT marker");
+    }
+    if (!knowledgePage.includes('href="../assets/css/knowledge-directory.css"')) {
+      errors.push("knowledge/index.html: compact directory stylesheet is not loaded");
     }
     if (!knowledgePage.includes('data-knowledge-search-form')) {
       errors.push("knowledge/index.html: search must use the compact embedded-button form");
@@ -215,18 +241,6 @@ async function validateBuiltKnowledge() {
   }
   if (knowledgePage.includes('class="markdown-body') || knowledgePage.includes('class="katex')) {
     errors.push("knowledge/index.html: article bodies/formulas must live on subpages, not the index");
-  }
-  if (knowledgePage.includes('class="knowledge-card-meta"')) {
-    errors.push("knowledge/index.html: article cards must not repeat category/source-path metadata");
-  }
-  if (knowledgePage.includes('class="knowledge-card-open"')) {
-    errors.push("knowledge/index.html: article cards must not add redundant read-note microcopy");
-  }
-  if (/<div class="knowledge-chapter-head">\s*<span>/s.test(knowledgePage)) {
-    errors.push("knowledge/index.html: chapter headings must be plain section titles without source-label microcopy");
-  }
-  if (/<header class="knowledge-source-header">\s*<p class="eyebrow">/s.test(knowledgePage)) {
-    errors.push("knowledge/index.html: source headings must not repeat category eyebrow labels");
   }
 
   const mlCards = [...knowledgePage.matchAll(/data-category=["']Machine Learning["'][^>]*data-knowledge-entry/g)].length;
@@ -310,6 +324,7 @@ async function validateHtmlFile(file) {
 await validateRequiredFiles();
 await validateHomepageAdaptiveGrid();
 await validateProjectTaxonomy();
+await validateKnowledgeDirectoryStyles();
 await validateSourceArchitecture();
 await validateBuiltKnowledge();
 
