@@ -163,8 +163,20 @@ async function validateKnowledgeDirectoryStyles() {
   if (!(await exists(cssPath))) return;
   const css = await readFile(cssPath, "utf8");
 
-  if (!/\.knowledge-search-panel\s*\{[^}]*width\s*:\s*min\(100%,\s*620px\)/s.test(css)) {
-    errors.push("assets/css/knowledge-directory.css: search panel must stay compact on desktop");
+  if (!/\.knowledge-search-panel\s*\{[^}]*display\s*:\s*flex/s.test(css)) {
+    errors.push("assets/css/knowledge-directory.css: search panel must use flex layout");
+  }
+  if (!/\.knowledge-search-form\s*\{[^}]*flex\s*:\s*0\s+1\s+78%/s.test(css)) {
+    errors.push("assets/css/knowledge-directory.css: search width must be proportional instead of fixed");
+  }
+  if (/width\s*:\s*min\(100%,\s*620px\)/.test(css)) {
+    errors.push("assets/css/knowledge-directory.css: search must not be locked to 620px");
+  }
+  if (!/\.knowledge-search-field\s*\{[^}]*display\s*:\s*flex/s.test(css)) {
+    errors.push("assets/css/knowledge-directory.css: search field must use flex layout");
+  }
+  if (!/\.knowledge-page-hero h1\s*\{[^}]*font-size\s*:\s*clamp\(/s.test(css)) {
+    errors.push("assets/css/knowledge-directory.css: knowledge title needs its own restrained size");
   }
   if (!/\.knowledge-search-submit\s*\{[^}]*border-radius\s*:\s*999px/s.test(css)) {
     errors.push("assets/css/knowledge-directory.css: search submit must be visually embedded in the field");
@@ -197,6 +209,9 @@ async function validateSourceArchitecture() {
     }
     if (!knowledgePage.includes('data-knowledge-search-submit')) {
       errors.push("knowledge/index.html: search submit button must live inside the search field");
+    }
+    if (/<label class="knowledge-search-field">[\s\S]*?<span class="skip-link">/.test(knowledgePage)) {
+      errors.push("knowledge/index.html: global skip-link must not be reused as inline search helper text");
     }
     if (knowledgePage.includes("01 / LEETCODE") || knowledgePage.includes("02 / ML")) {
       errors.push("knowledge/index.html: topic cards must not add redundant small-code labels");
