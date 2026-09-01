@@ -1,9 +1,12 @@
 .knowledge-page-hero {
-  padding-bottom: 28px;
+  padding-bottom: 24px;
 }
 
 .knowledge-page-hero h1 {
   margin: 0;
+  font-size: clamp(2.8rem, 5vw, 4.4rem);
+  line-height: 1.04;
+  letter-spacing: -0.05em;
 }
 
 .knowledge-directory-section {
@@ -11,17 +14,23 @@
 }
 
 .knowledge-search-panel {
-  width: min(100%, 620px);
-  padding: 10px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .knowledge-search-form {
-  width: min(100%, 560px);
+  flex: 0 1 78%;
+  min-width: 0;
 }
 
 .knowledge-search-field {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
@@ -29,15 +38,18 @@
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface-solid);
+  box-shadow: var(--shadow-sm);
 }
 
 .knowledge-search-field > svg {
+  flex: 0 0 auto;
   width: 18px;
   height: 18px;
   color: var(--muted);
 }
 
 .knowledge-search-field .search-input {
+  flex: 1 1 auto;
   min-width: 0;
   padding: 9px 0;
   border: 0;
@@ -47,6 +59,7 @@
 }
 
 .knowledge-search-submit {
+  flex: 0 0 auto;
   min-height: 38px;
   padding: 0 16px;
   border: 0;
@@ -144,9 +157,8 @@
 }
 
 @media (max-width: 720px) {
-  .knowledge-search-panel,
   .knowledge-search-form {
-    width: 100%;
+    flex-basis: 100%;
   }
 
   .knowledge-search-submit {
