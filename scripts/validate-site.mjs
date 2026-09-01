@@ -35,6 +35,9 @@ const builtRequiredFiles = [
   "assets/vendor/katex/katex.min.css",
   "knowledge/sources/machine-learning-notes/README.md",
   "knowledge/sources/leetcode/README.md",
+  "knowledge/machine-learning/chapter_01_supervised_learning/01_learning_regression/index.html",
+  "knowledge/machine-learning/chapter_04_decision_trees/05_xgboost/index.html",
+  "knowledge/leetcode/binary-search/index.html",
 ];
 
 async function exists(target) {
@@ -47,13 +50,13 @@ async function exists(target) {
 }
 
 async function collectHtmlFiles(directory) {
+  if (!(await exists(directory))) return [];
+
   const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
 
   for (const entry of entries) {
-    if ([".git", ".build", "node_modules"].includes(entry.name)) {
-      continue;
-    }
+    if ([".git", ".build", "node_modules"].includes(entry.name)) continue;
 
     const absolutePath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
@@ -87,9 +90,7 @@ async function resolveLocalReference(fromFile, rawReference) {
     ? path.resolve(root, `.${cleanReference}`)
     : path.resolve(path.dirname(fromFile), cleanReference);
 
-  if (!(await exists(candidate))) {
-    return candidate;
-  }
+  if (!(await exists(candidate))) return candidate;
 
   const candidateStat = await stat(candidate);
   return candidateStat.isDirectory() ? path.join(candidate, "index.html") : candidate;
@@ -114,24 +115,20 @@ async function validateHomepageAdaptiveGrid() {
   if (!homepage.includes('href="assets/css/adaptive-grid.css"')) {
     errors.push("index.html: adaptive grid stylesheet is not loaded");
   }
-
   if (!homepage.includes('class="brand-avatar"')) {
     errors.push("index.html: the top-left brand must use the profile avatar");
   }
-
   if (/class=["'][^"']*\bhero-profile\b/.test(homepage)) {
     errors.push("index.html: duplicate large hero profile card must be removed");
   }
 
   if (!(await exists(adaptiveCssPath))) return;
-
   const adaptiveCss = await readFile(adaptiveCssPath, "utf8");
   if (!/\.adaptive-grid\s*\{[^}]*grid-template-columns\s*:\s*repeat\(auto-fit,\s*minmax\(/s.test(adaptiveCss)) {
     errors.push("assets/css/adaptive-grid.css: .adaptive-grid must use auto-fit + minmax for fluid columns");
   }
 
-  const adaptiveSections = ["project-grid", "capability-flow", "now-stack", "home-direct-knowledge"];
-  for (const sectionClass of adaptiveSections) {
+  for (const sectionClass of ["project-grid", "capability-flow", "now-stack", "home-direct-knowledge"]) {
     const pattern = new RegExp(`class=["'][^"']*\\b${sectionClass}\\b[^"']*\\badaptive-grid\\b[^"']*["']`);
     if (!pattern.test(homepage)) {
       errors.push(`index.html: ${sectionClass} must opt in to adaptive-grid`);
@@ -169,22 +166,19 @@ async function validateSourceArchitecture() {
     if (!knowledgePage.includes("<!-- KNOWLEDGE_CONTENT -->")) {
       errors.push("knowledge/index.html: missing build-time KNOWLEDGE_CONTENT marker");
     }
-    if (!knowledgePage.includes("<!-- KATEX_CSS -->")) {
-      errors.push("knowledge/index.html: missing build-time KATEX_CSS marker");
-    }
   }
 
   if (await exists(path.join(root, "assets/js/knowledge-data.js"))) {
     errors.push("assets/js/knowledge-data.js: duplicated hand-written knowledge content must be removed");
   }
-
   if (await exists(path.join(root, "knowledge/articles/machine-learning-roadmap.html"))) {
     errors.push("knowledge/articles/machine-learning-roadmap.html: duplicated machine-learning article must be removed");
   }
 
-  const deployPath = path.join(root, ".github/workflows/deploy.yml");
-  const validatePath = path.join(root, ".github/workflows/validate.yml");
-  for (const workflowPath of [deployPath, validatePath]) {
+  for (const workflowPath of [
+    path.join(root, ".github/workflows/deploy.yml"),
+    path.join(root, ".github/workflows/validate.yml"),
+  ]) {
     if (!(await exists(workflowPath))) continue;
     const content = await readFile(workflowPath, "utf8");
     const label = relative(workflowPath);
@@ -204,31 +198,61 @@ async function validateBuiltKnowledge() {
   if (!(await exists(knowledgePagePath))) return;
   const knowledgePage = await readFile(knowledgePagePath, "utf8");
 
-  if (knowledgePage.includes("<!-- KNOWLEDGE_CONTENT -->") || knowledgePage.includes("<!-- KATEX_CSS -->")) {
-    errors.push("knowledge/index.html: build markers still exist after Markdown generation");
+  if (knowledgePage.includes("<!-- KNOWLEDGE_CONTENT -->")) {
+    errors.push("knowledge/index.html: build marker still exists after knowledge generation");
+  }
+  if (knowledgePage.includes('class="markdown-body') || knowledgePage.includes('class="katex')) {
+    errors.push("knowledge/index.html: article bodies/formulas must live on subpages, not the index");
   }
 
-  const mlEntries = [...knowledgePage.matchAll(/data-category=["']Machine Learning["']/g)].length;
-  const leetcodeEntries = [...knowledgePage.matchAll(/data-category=["']LeetCode Notes["']/g)].length;
-  if (mlEntries < 20) {
-    errors.push(`knowledge/index.html: expected at least 20 rendered machine-learning notes, found ${mlEntries}`);
+  const mlCards = [...knowledgePage.matchAll(/data-category=["']Machine Learning["'][^>]*data-knowledge-entry/g)].length;
+  const leetcodeCards = [...knowledgePage.matchAll(/data-category=["']LeetCode Notes["'][^>]*data-knowledge-entry/g)].length;
+  if (mlCards < 20) {
+    errors.push(`knowledge/index.html: expected at least 20 machine-learning article cards, found ${mlCards}`);
   }
-  if (leetcodeEntries < 6) {
-    errors.push(`knowledge/index.html: expected at least 6 rendered LeetCode notes, found ${leetcodeEntries}`);
+  if (leetcodeCards < 6) {
+    errors.push(`knowledge/index.html: expected at least 6 LeetCode article cards, found ${leetcodeCards}`);
   }
 
-  for (const expectedText of ["线性回归模型", "构建神经网络", "机器学习的开发过程", "XGBoost", "PCA 主成分分析"]) {
-    if (!knowledgePage.includes(expectedText)) {
-      errors.push(`knowledge/index.html: rendered machine-learning source is missing "${expectedText}"`);
+  for (const expectedHref of [
+    'href="machine-learning/chapter_01_supervised_learning/01_learning_regression/"',
+    'href="machine-learning/chapter_04_decision_trees/05_xgboost/"',
+    'href="leetcode/binary-search/"',
+  ]) {
+    if (!knowledgePage.includes(expectedHref)) {
+      errors.push(`knowledge/index.html: missing generated article link ${expectedHref}`);
     }
   }
 
-  if (!knowledgePage.includes("data-source-path=")) {
-    errors.push("knowledge/index.html: rendered notes must retain their source Markdown path");
+  const mlArticleFiles = await collectHtmlFiles(path.join(root, "knowledge/machine-learning"));
+  const leetcodeArticleFiles = await collectHtmlFiles(path.join(root, "knowledge/leetcode"));
+  if (mlArticleFiles.length < 20) {
+    errors.push(`knowledge/machine-learning: expected at least 20 article pages, found ${mlArticleFiles.length}`);
+  }
+  if (leetcodeArticleFiles.length < 6) {
+    errors.push(`knowledge/leetcode: expected at least 6 article pages, found ${leetcodeArticleFiles.length}`);
   }
 
-  if (!knowledgePage.includes('class="katex')) {
-    errors.push("knowledge/index.html: expected build-time KaTeX-rendered formulas");
+  const regressionPath = path.join(root, "knowledge/machine-learning/chapter_01_supervised_learning/01_learning_regression/index.html");
+  if (await exists(regressionPath)) {
+    const regressionPage = await readFile(regressionPath, "utf8");
+    if (!regressionPage.includes('class="markdown-body"')) {
+      errors.push("linear regression article: missing rendered Markdown body");
+    }
+    if (!regressionPage.includes('class="katex')) {
+      errors.push("linear regression article: missing build-time KaTeX formulas");
+    }
+    if (!regressionPage.includes("chapter_01_supervised_learning/01_learning_regression.md")) {
+      errors.push("linear regression article: missing source Markdown path");
+    }
+  }
+
+  const xgboostPath = path.join(root, "knowledge/machine-learning/chapter_04_decision_trees/05_xgboost/index.html");
+  if (await exists(xgboostPath)) {
+    const xgboostPage = await readFile(xgboostPath, "utf8");
+    if (!xgboostPage.includes("/knowledge/sources/machine-learning-notes/chapter_04_decision_trees/assets/xgboost_sequential_boosting.svg")) {
+      errors.push("XGBoost article: source SVG asset was not rewritten to the copied static asset");
+    }
   }
 }
 
@@ -243,9 +267,7 @@ async function validateHtmlFile(file) {
   const ids = [...content.matchAll(/\bid\s*=\s*["']([^"']+)["']/gi)].map((match) => match[1]);
   const seenIds = new Set();
   for (const id of ids) {
-    if (seenIds.has(id)) {
-      errors.push(`${fileLabel}: duplicate id "${id}"`);
-    }
+    if (seenIds.has(id)) errors.push(`${fileLabel}: duplicate id "${id}"`);
     seenIds.add(id);
   }
 
