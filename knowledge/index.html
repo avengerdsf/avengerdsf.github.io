@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Chenyinhong 的个人技术知识库：力扣算法、机器学习、人形机器人与强化学习、Linux 工具以及工程实践。">
+  <meta name="description" content="Chenyinhong 的个人技术知识库：Machine Learning Notes 与力扣算法笔记。">
   <meta name="theme-color" content="#f7f8fb">
   <meta property="og:title" content="Knowledge Base · Chenyinhong">
-  <meta property="og:description" content="可直接阅读与检索的力扣、机器学习、机器人强化学习、Linux 工具与工程实践知识库。">
+  <meta property="og:description" content="可直接阅读与检索的机器学习与力扣算法知识库。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://avengerdsf.github.io/knowledge/">
   <link rel="canonical" href="https://avengerdsf.github.io/knowledge/">
@@ -35,6 +35,7 @@
         <a href="../">主页</a>
         <a href="./" aria-current="page">知识库</a>
         <a href="#leetcode-core-patterns">力扣</a>
+        <a href="#machine-learning-roadmap">机器学习</a>
         <a href="https://github.com/avengerdsf" target="_blank">GitHub</a>
         <button class="nav-control icon-button" type="button" data-theme-toggle aria-label="切换主题">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -51,7 +52,7 @@
       <div class="container reveal">
         <p class="eyebrow">Personal Knowledge Base</p>
         <h1>知识直接放在这里读，不再让目录变成第二层跳转。</h1>
-        <p>搜索与分类只负责定位，命中的笔记正文直接展开。公开仓库作为来源与完整上下文保留在对应笔记底部。</p>
+        <p>当前知识库只收录已有的 Machine Learning Notes 与力扣算法笔记；搜索和分类只负责定位，命中的正文直接展开。</p>
       </div>
     </section>
 
@@ -63,25 +64,10 @@
             <strong>力扣算法笔记</strong>
             <p>二分、滑窗、图、并查集、拓扑与 DP。</p>
           </button>
-          <button class="topic-card" type="button" data-topic-category="Robotics & Reinforcement Learning" aria-pressed="false">
-            <span>02 / ROBOTICS</span>
-            <strong>机器人与强化学习</strong>
-            <p>训练、回放、仿真与策略迁移。</p>
-          </button>
-          <button class="topic-card" type="button" data-topic-category="Linux & Tooling" aria-pressed="false">
-            <span>03 / SYSTEMS</span>
-            <strong>Linux 与调试</strong>
-            <p>GDB、Bash、Git SSH 与工程工具。</p>
-          </button>
           <button class="topic-card" type="button" data-topic-category="Machine Learning" aria-pressed="false">
-            <span>04 / ML</span>
-            <strong>机器学习</strong>
-            <p>监督学习、深度学习、树模型与无监督学习。</p>
-          </button>
-          <button class="topic-card" type="button" data-topic-category="Engineering Practice" aria-pressed="false">
-            <span>05 / ENGINEERING</span>
-            <strong>工程实践</strong>
-            <p>桌面应用、数据流程与产品化实现。</p>
+            <span>02 / ML</span>
+            <strong>Machine Learning Notes</strong>
+            <p>监督学习、深度学习、模型评估、树模型与无监督学习。</p>
           </button>
         </div>
 
@@ -93,7 +79,7 @@
                 <circle cx="11" cy="11" r="6.5" />
                 <path d="m16 16 4 4" />
               </svg>
-              <input class="search-input" type="search" placeholder="搜索二分、PPO、GDB、Ubuntu、PyTorch…" autocomplete="off" data-knowledge-search aria-label="搜索知识库">
+              <input class="search-input" type="search" placeholder="搜索二分、DP、PyTorch、决策树…" autocomplete="off" data-knowledge-search aria-label="搜索知识库">
             </label>
           </div>
           <div class="filter-row" data-filter-row aria-label="知识分类"></div>
@@ -101,7 +87,7 @@
 
         <div class="results-meta knowledge-results-meta">
           <span data-result-count aria-live="polite">正在加载内容…</span>
-          <span>正文直接展开 · 公开仓库只作为来源</span>
+          <span>正文直接展开 · Machine Learning Notes 保留公开源仓库链接</span>
         </div>
 
         <div class="knowledge-inline-list" data-knowledge-grid></div>
@@ -115,13 +101,9 @@
         <noscript>
           <div class="fallback-links">
             <strong>当前浏览器未启用 JavaScript。</strong>
-            <p>可以直接访问下面的固定文章入口：</p>
+            <p>可以直接查看机器学习笔记源仓库：</p>
             <ul>
-              <li><a href="articles/gdb-debugging-workflow.html">GDB 调试工作流</a></li>
-              <li><a href="articles/bash-history-reliability.html">Bash 历史命令可靠记录</a></li>
-              <li><a href="articles/git-ssh-troubleshooting.html">GitHub SSH 443 排障</a></li>
-              <li><a href="articles/machine-learning-roadmap.html">机器学习学习路线</a></li>
-              <li><a href="articles/reinforcement-learning-workflow.html">强化学习工程工作流</a></li>
+              <li><a href="https://github.com/avengerdsf/machine-learning-notes">Machine Learning Notes ↗</a></li>
             </ul>
           </div>
         </noscript>
