@@ -12,6 +12,7 @@ const sharedRequiredFiles = [
   "assets/css/site.css",
   "assets/css/adaptive-grid.css",
   "assets/css/round2.css",
+  "assets/css/knowledge-markdown.css",
   "assets/js/site.js",
   "assets/js/knowledge.js",
 ];
@@ -31,6 +32,7 @@ const sourceRequiredFiles = [
 
 const builtRequiredFiles = [
   ...sharedRequiredFiles,
+  "assets/vendor/katex/katex.min.css",
   "knowledge/sources/machine-learning-notes/README.md",
   "knowledge/sources/leetcode/README.md",
 ];
@@ -68,35 +70,29 @@ function relative(file) {
   return path.relative(root, file).split(path.sep).join("/");
 }
 
-async function resolveHref(fromFile, rawHref) {
-  const href = rawHref.trim();
+async function resolveLocalReference(fromFile, rawReference) {
+  const reference = rawReference.trim();
   if (
-    !href ||
-    href.startsWith("#") ||
-    /^(https?:|mailto:|tel:|javascript:|data:)/i.test(href)
+    !reference ||
+    reference.startsWith("#") ||
+    /^(https?:|mailto:|tel:|javascript:|data:|blob:)/i.test(reference)
   ) {
     return null;
   }
 
-  const cleanHref = decodeURIComponent(href.split("#")[0].split("?")[0]);
-  if (!cleanHref) {
-    return null;
-  }
+  const cleanReference = decodeURIComponent(reference.split("#")[0].split("?")[0]);
+  if (!cleanReference) return null;
 
-  const candidate = cleanHref.startsWith("/")
-    ? path.resolve(root, `.${cleanHref}`)
-    : path.resolve(path.dirname(fromFile), cleanHref);
+  const candidate = cleanReference.startsWith("/")
+    ? path.resolve(root, `.${cleanReference}`)
+    : path.resolve(path.dirname(fromFile), cleanReference);
 
   if (!(await exists(candidate))) {
     return candidate;
   }
 
   const candidateStat = await stat(candidate);
-  if (candidateStat.isDirectory()) {
-    return path.join(candidate, "index.html");
-  }
-
-  return candidate;
+  return candidateStat.isDirectory() ? path.join(candidate, "index.html") : candidate;
 }
 
 async function validateRequiredFiles() {
@@ -173,6 +169,9 @@ async function validateSourceArchitecture() {
     if (!knowledgePage.includes("<!-- KNOWLEDGE_CONTENT -->")) {
       errors.push("knowledge/index.html: missing build-time KNOWLEDGE_CONTENT marker");
     }
+    if (!knowledgePage.includes("<!-- KATEX_CSS -->")) {
+      errors.push("knowledge/index.html: missing build-time KATEX_CSS marker");
+    }
   }
 
   if (await exists(path.join(root, "assets/js/knowledge-data.js"))) {
@@ -205,8 +204,8 @@ async function validateBuiltKnowledge() {
   if (!(await exists(knowledgePagePath))) return;
   const knowledgePage = await readFile(knowledgePagePath, "utf8");
 
-  if (knowledgePage.includes("<!-- KNOWLEDGE_CONTENT -->")) {
-    errors.push("knowledge/index.html: build marker still exists after Markdown generation");
+  if (knowledgePage.includes("<!-- KNOWLEDGE_CONTENT -->") || knowledgePage.includes("<!-- KATEX_CSS -->")) {
+    errors.push("knowledge/index.html: build markers still exist after Markdown generation");
   }
 
   const mlEntries = [...knowledgePage.matchAll(/data-category=["']Machine Learning["']/g)].length;
@@ -227,6 +226,10 @@ async function validateBuiltKnowledge() {
   if (!knowledgePage.includes("data-source-path=")) {
     errors.push("knowledge/index.html: rendered notes must retain their source Markdown path");
   }
+
+  if (!knowledgePage.includes('class="katex')) {
+    errors.push("knowledge/index.html: expected build-time KaTeX-rendered formulas");
+  }
 }
 
 async function validateHtmlFile(file) {
@@ -246,12 +249,14 @@ async function validateHtmlFile(file) {
     seenIds.add(id);
   }
 
-  const hrefs = [...content.matchAll(/\bhref\s*=\s*["']([^"']+)["']/gi)].map((match) => match[1]);
-  for (const href of hrefs) {
-    const target = await resolveHref(file, href);
-    if (!target) continue;
-    if (!(await exists(target))) {
-      errors.push(`${fileLabel}: broken internal href "${href}" -> ${relative(target)}`);
+  for (const attribute of ["href", "src"]) {
+    const references = [...content.matchAll(new RegExp(`\\b${attribute}\\s*=\\s*["']([^"']+)["']`, "gi"))].map((match) => match[1]);
+    for (const reference of references) {
+      const target = await resolveLocalReference(file, reference);
+      if (!target) continue;
+      if (!(await exists(target))) {
+        errors.push(`${fileLabel}: broken internal ${attribute} "${reference}" -> ${relative(target)}`);
+      }
     }
   }
 }
