@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Chenyinhong (avengerdsf) 的个人主页与知识库，关注人形机器人、强化学习、Linux 系统调试、工程实践与算法学习。">
+  <meta name="description" content="Chenyinhong (avengerdsf) 的个人主页与知识库，关注人形机器人、强化学习、工程项目、开发工具、机器学习与算法学习。">
   <meta name="theme-color" content="#f7f8fb">
   <meta property="og:title" content="Chenyinhong · Robotics, RL & Engineering">
-  <meta property="og:description" content="人形机器人、强化学习、Linux 系统调试、公开项目与个人技术知识库。">
+  <meta property="og:description" content="人形机器人、强化学习、工程项目、开发工具与个人技术知识库。">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://avengerdsf.github.io/">
   <meta property="og:image" content="https://avatars.githubusercontent.com/u/119413549?v=4">
@@ -36,8 +36,7 @@
         <a href="#now">现在</a>
         <a href="#focus">能力</a>
         <a href="#projects">项目</a>
-        <a href="#leetcode">力扣</a>
-        <a href="knowledge/">知识库</a>
+        <a href="#knowledge">知识库</a>
         <a href="https://github.com/avengerdsf" target="_blank">GitHub</a>
         <button class="nav-control icon-button" type="button" data-theme-toggle aria-label="切换主题">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
@@ -59,7 +58,7 @@
             <span>人形机器人运动控制 / 强化学习 / Linux 系统调试</span>
           </h1>
           <p class="hero-copy">
-            我是 avengerdsf。当前主要做机器人运动策略、训练与仿真验证，也持续整理 GDB、Linux、机器学习、算法题和工程项目中的可复用笔记。
+            我是 avengerdsf。当前主要做人形机器人运动控制与强化学习，也持续开发桌面应用和 Linux 工具，并整理机器学习与算法笔记。
           </p>
           <div class="hero-actions">
             <a class="button button-primary" href="knowledge/">进入知识库</a>
@@ -153,70 +152,48 @@
         <div class="section-head reveal">
           <div class="section-title">
             <p class="eyebrow">Selected Work</p>
-            <h2>公开项目</h2>
-            <p>机器人强化学习、机器学习笔记、桌面应用与 Linux 工具。</p>
+            <h2>项目</h2>
+            <p>研究工程、应用工程与开发工具统一收录在这里。</p>
           </div>
           <a class="text-link" href="https://github.com/avengerdsf?tab=repositories" target="_blank">全部仓库 ↗</a>
         </div>
 
         <div class="project-grid adaptive-grid">
           <a class="project-card reveal" href="https://github.com/avengerdsf/agibot_rl_mjlab" target="_blank">
-            <div class="project-topline"><span>Robotics / RL</span><span>Public</span></div>
+            <div class="project-topline"><span>Research / Robotics RL</span><span>Public</span></div>
             <h3>AgiBot RL Mjlab</h3>
             <p>面向 AgiBot X1 的轻量强化学习工程，包含训练、回放、任务注册、机器人配置与 PPO 配置。</p>
             <div class="tag-row"><span class="tag">MJLab</span><span class="tag">MuJoCo</span><span class="tag">PPO</span></div>
-            <div class="project-signal-row"><span class="project-signal">Focus</span><span>机器人强化学习工程</span></div>
+            <div class="project-signal-row"><span class="project-signal">Type</span><span>研究工程</span></div>
             <div class="card-footer"><span>查看源码</span><span>↗</span></div>
           </a>
 
-          <a class="project-card reveal" href="https://github.com/avengerdsf/machine-learning-notes" target="_blank">
-            <div class="project-topline"><span>Knowledge</span><span>Public</span></div>
-            <h3>Machine Learning Notes</h3>
-            <p>监督学习、深度学习、模型评估、决策树和无监督学习笔记。</p>
-            <div class="tag-row"><span class="tag">Machine Learning</span><span class="tag">PyTorch</span><span class="tag">Notes</span></div>
-            <div class="project-signal-row"><span class="project-signal">Focus</span><span>机器学习笔记</span></div>
-            <div class="card-footer"><span>查看笔记</span><span>↗</span></div>
-          </a>
-
           <a class="project-card reveal" href="https://github.com/avengerdsf/invoice-manager" target="_blank">
-            <div class="project-topline"><span>Desktop App</span><span>Public</span></div>
+            <div class="project-topline"><span>Application / Desktop</span><span>Public</span></div>
             <h3>Invoice Manager</h3>
             <p>本地发票、支付截图和报销明细管理，包含核算、离线识别、导出与跨平台构建。</p>
             <div class="tag-row"><span class="tag">Electron</span><span class="tag">React</span><span class="tag">TypeScript</span></div>
-            <div class="project-signal-row"><span class="project-signal">Focus</span><span>桌面应用工程</span></div>
+            <div class="project-signal-row"><span class="project-signal">Type</span><span>应用工程</span></div>
             <div class="card-footer"><span>查看项目</span><span>↗</span></div>
           </a>
 
+          <a class="project-card reveal" href="https://github.com/avengerdsf/Tmux-generator" target="_blank">
+            <div class="project-topline"><span>Tool / Developer</span><span>Public</span></div>
+            <h3>Tmux Generator</h3>
+            <p>用于创建、预览、导出和管理 tmux 会话脚本的 Web 工具，支持本机启动与局域网访问。</p>
+            <div class="tag-row"><span class="tag">Python</span><span class="tag">tmux</span><span class="tag">Web UI</span></div>
+            <div class="project-signal-row"><span class="project-signal">Type</span><span>开发工具</span></div>
+            <div class="card-footer"><span>查看工具</span><span>↗</span></div>
+          </a>
+
           <a class="project-card reveal" href="https://github.com/avengerdsf/ubuntu_toolbox" target="_blank">
-            <div class="project-topline"><span>Linux Tooling</span><span>Public</span></div>
+            <div class="project-topline"><span>Tool / Linux Utility</span><span>Public</span></div>
             <h3>Ubuntu Toolbox</h3>
             <p>Ubuntu 常用 Shell / C++ 工具集合，用于封装重复系统操作。</p>
             <div class="tag-row"><span class="tag">Ubuntu</span><span class="tag">C++</span><span class="tag">Shell</span></div>
-            <div class="project-signal-row"><span class="project-signal">Focus</span><span>Linux 工具化</span></div>
+            <div class="project-signal-row"><span class="project-signal">Type</span><span>系统工具</span></div>
             <div class="card-footer"><span>查看工具箱</span><span>↗</span></div>
           </a>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="leetcode">
-      <div class="container">
-        <div class="section-head reveal">
-          <div class="section-title">
-            <p class="eyebrow">LeetCode Notes</p>
-            <h2>力扣笔记</h2>
-            <p>按算法模式整理高频模板、边界条件和常见错误。</p>
-          </div>
-          <a class="text-link" href="knowledge/#leetcode-core-patterns">查看完整笔记 →</a>
-        </div>
-
-        <div class="card-grid adaptive-grid">
-          <article class="focus-card reveal"><span class="card-index">01 / BINARY SEARCH</span><h3>二分查找</h3><p>闭区间与半开区间、左右边界、答案区间与收缩规则。</p></article>
-          <article class="focus-card reveal"><span class="card-index">02 / WINDOW</span><h3>滑动窗口</h3><p>窗口合法条件、左右指针更新、一次合法状态如何统计答案。</p></article>
-          <article class="focus-card reveal"><span class="card-index">03 / GRAPH</span><h3>DFS / BFS</h3><p>父节点与 visited、多源 BFS、最短无权路径和递归状态。</p></article>
-          <article class="focus-card reveal"><span class="card-index">04 / UNION FIND</span><h3>并查集</h3><p>路径压缩、按秩/大小合并和连通分量维护。</p></article>
-          <article class="focus-card reveal"><span class="card-index">05 / TOPO</span><h3>拓扑排序</h3><p>入度、Kahn 算法、依赖顺序与有向图判环。</p></article>
-          <article class="focus-card reveal"><span class="card-index">06 / DP</span><h3>动态规划</h3><p>状态定义、初始化、遍历顺序、LIS 与背包类问题。</p></article>
         </div>
       </div>
     </section>
@@ -226,15 +203,13 @@
         <div class="knowledge-feature reveal">
           <p class="eyebrow">Personal Knowledge Base</p>
           <h2>个人知识库</h2>
-          <p>知识库首页会直接展开正文。可以搜索和筛选，不需要先点卡片再进入第二层页面。</p>
+          <p>当前只收录已有的机器学习笔记与力扣算法笔记，正文可直接阅读和检索。</p>
           <a class="button" href="knowledge/">打开知识库 →</a>
         </div>
 
         <div class="home-direct-knowledge adaptive-grid">
-          <div class="home-direct-note reveal"><strong>力扣高频算法笔记</strong><p>二分、滑窗、DFS/BFS、并查集、拓扑排序、动态规划。</p><div class="tag-row"><span class="tag">Algorithms</span><span class="tag">LeetCode</span></div></div>
-          <div class="home-direct-note reveal"><strong>GDB 调试工作流</strong><p>断点、单步、变量、调用栈、多线程和 commands。</p><div class="tag-row"><span class="tag">GDB</span><span class="tag">Debug</span></div></div>
-          <div class="home-direct-note reveal"><strong>强化学习工程工作流</strong><p>机器人配置、PPO、train/play、MuJoCo 和策略验证。</p><div class="tag-row"><span class="tag">PPO</span><span class="tag">MuJoCo</span></div></div>
-          <div class="home-direct-note reveal"><strong>Linux 工程工具箱</strong><p>Bash、Git SSH、进程、端口、内核和重复操作工具化。</p><div class="tag-row"><span class="tag">Linux</span><span class="tag">Tooling</span></div></div>
+          <a class="home-direct-note reveal" href="knowledge/#leetcode-core-patterns"><strong>力扣高频算法笔记</strong><p>二分、滑窗、DFS/BFS、并查集、拓扑排序、动态规划。</p><div class="tag-row"><span class="tag">Algorithms</span><span class="tag">LeetCode</span></div></a>
+          <a class="home-direct-note reveal" href="knowledge/#machine-learning-roadmap"><strong>Machine Learning Notes</strong><p>监督学习、深度学习、模型评估、决策树与无监督学习。</p><div class="tag-row"><span class="tag">Machine Learning</span><span class="tag">PyTorch</span></div></a>
         </div>
       </div>
     </section>
