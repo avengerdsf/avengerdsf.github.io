@@ -12,13 +12,28 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout site
         uses: actions/checkout@v5
+
+      - name: Checkout machine-learning notes
+        uses: actions/checkout@v5
+        with:
+          repository: avengerdsf/machine-learning-notes
+          path: .build/machine-learning-notes
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: "20"
 
-      - name: Validate site structure and links
-        run: node scripts/validate-site.mjs
+      - name: Install Markdown build dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Validate source architecture
+        run: node scripts/validate-site.mjs --source
+
+      - name: Build knowledge from Markdown
+        run: node scripts/build-knowledge.mjs --ml-source .build/machine-learning-notes
+
+      - name: Validate generated site
+        run: node scripts/validate-site.mjs --built
