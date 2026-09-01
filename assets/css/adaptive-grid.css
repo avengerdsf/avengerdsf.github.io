@@ -10,10 +10,6 @@
   --adaptive-card-min: 320px;
 }
 
-.card-grid {
-  --adaptive-card-min: 250px;
-}
-
 .capability-flow {
   --adaptive-card-min: 220px;
 }
@@ -58,7 +54,6 @@
   }
 
   .project-card,
-  .focus-card,
   .capability-node,
   .now-card,
   .home-direct-note {
