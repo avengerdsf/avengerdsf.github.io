@@ -13,7 +13,6 @@
   <link rel="stylesheet" href="../assets/css/site.css">
   <link rel="stylesheet" href="../assets/css/round2.css">
   <link rel="stylesheet" href="../assets/css/knowledge-markdown.css">
-  <style>.knowledge-search-panel{top:calc(var(--header-height) + 14px)}</style>
   <title>Knowledge Base · Chenyinhong</title>
 </head>
 <body>
@@ -51,44 +50,38 @@
   <main id="main">
     <section class="page-hero knowledge-page-hero">
       <div class="container reveal">
-        <p class="eyebrow">Personal Knowledge Base</p>
-        <h1>这里是目录，正文放到各自的子页。</h1>
-        <p>Machine Learning 从 <code>avengerdsf/machine-learning-notes</code> 构建，力扣来自本站 Markdown 源。这里仅展示章节、标题与摘要，点击后进入单篇笔记。</p>
+        <h1>知识库</h1>
       </div>
     </section>
 
-    <section class="section section-tight">
+    <section class="section section-tight knowledge-directory-section">
       <div class="container">
-        <div class="topic-overview reveal" aria-label="知识主题快捷入口">
+        <div class="topic-overview knowledge-topic-overview reveal" aria-label="知识主题快捷入口">
           <button class="topic-card" type="button" data-topic-category="LeetCode Notes" aria-pressed="false">
-            <span>01 / LEETCODE</span>
             <strong>力扣算法笔记</strong>
-            <p>二分、滑窗、DFS/BFS、并查集、拓扑与 DP。</p>
           </button>
           <button class="topic-card" type="button" data-topic-category="Machine Learning" aria-pressed="false">
-            <span>02 / ML</span>
             <strong>Machine Learning Notes</strong>
-            <p>按源仓库章节目录进入对应 Markdown 子页。</p>
           </button>
         </div>
 
         <div class="search-panel reveal knowledge-search-panel" aria-label="知识库搜索与筛选">
-          <div class="search-row">
-            <label class="search-box">
+          <form class="knowledge-search-form" data-knowledge-search-form role="search">
+            <label class="knowledge-search-field">
               <span class="skip-link">搜索知识库</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                 <circle cx="11" cy="11" r="6.5" />
                 <path d="m16 16 4 4" />
               </svg>
-              <input class="search-input" type="search" placeholder="搜索标题、摘要或章节…" autocomplete="off" data-knowledge-search aria-label="搜索知识库">
+              <input class="search-input" type="search" placeholder="搜索笔记…" autocomplete="off" data-knowledge-search aria-label="搜索知识库">
+              <button class="knowledge-search-submit" type="submit" data-knowledge-search-submit>搜索</button>
             </label>
-          </div>
+          </form>
           <div class="filter-row" data-filter-row aria-label="知识分类"></div>
         </div>
 
         <div class="results-meta knowledge-results-meta">
           <span data-result-count aria-live="polite">正在生成知识索引…</span>
-          <span>Index → Article Subpage → Source Markdown</span>
         </div>
 
         <div class="knowledge-directory" data-knowledge-grid>
