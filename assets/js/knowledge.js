@@ -26,12 +26,9 @@ function matchesEntry(entry) {
   }
 
   const query = normalize(state.query);
-  if (!query) {
-    return true;
-  }
+  if (!query) return true;
 
-  const searchable = normalize(`${entry.textContent || ""} ${entry.dataset.sourcePath || ""}`);
-  return searchable.includes(query);
+  return normalize(entry.dataset.search).includes(query);
 }
 
 function renderFilters(container) {
@@ -75,11 +72,9 @@ function render() {
   const filterContainer = document.querySelector("[data-filter-row]");
   const resultCount = document.querySelector("[data-result-count]");
   const emptyState = document.querySelector("[data-empty-state]");
-  const grid = document.querySelector("[data-knowledge-grid]");
+  const directory = document.querySelector("[data-knowledge-grid]");
 
-  if (!filterContainer || !resultCount || !emptyState || !grid) {
-    return;
-  }
+  if (!filterContainer || !resultCount || !emptyState || !directory) return;
 
   let visibleCount = 0;
   entries.forEach((entry) => {
@@ -92,9 +87,9 @@ function render() {
   renderFilters(filterContainer);
   syncTopicCards();
 
-  resultCount.textContent = `${visibleCount} 篇 Markdown 笔记`;
+  resultCount.textContent = `${visibleCount} 篇笔记`;
   emptyState.classList.toggle("is-visible", visibleCount === 0);
-  grid.hidden = visibleCount === 0;
+  directory.hidden = visibleCount === 0;
 }
 
 function initTopicCards() {
