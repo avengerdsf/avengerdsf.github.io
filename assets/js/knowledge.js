@@ -1,5 +1,4 @@
 const state = {
-  category: "All",
   query: "",
 };
 
@@ -16,43 +15,10 @@ function getEntries() {
   return [...document.querySelectorAll("[data-knowledge-entry]")];
 }
 
-function getCategories() {
-  return ["All", ...new Set(getEntries().map((entry) => entry.dataset.category).filter(Boolean))];
-}
-
 function matchesEntry(entry) {
-  if (state.category !== "All" && entry.dataset.category !== state.category) {
-    return false;
-  }
-
   const query = normalize(state.query);
   if (!query) return true;
-
   return normalize(entry.dataset.search).includes(query);
-}
-
-function renderFilters(container) {
-  container.replaceChildren();
-
-  getCategories().forEach((category) => {
-    const button = document.createElement("button");
-    button.className = `filter-chip${category === state.category ? " is-active" : ""}`;
-    button.type = "button";
-    button.textContent = category;
-    button.dataset.category = category;
-    button.setAttribute("aria-pressed", String(category === state.category));
-    button.addEventListener("click", () => {
-      state.category = category;
-      render();
-    });
-    container.appendChild(button);
-  });
-}
-
-function syncTopicCards() {
-  document.querySelectorAll("[data-topic-category]").forEach((button) => {
-    button.setAttribute("aria-pressed", String(button.dataset.topicCategory === state.category));
-  });
 }
 
 function syncGroups() {
@@ -69,12 +35,11 @@ function syncGroups() {
 
 function render() {
   const entries = getEntries();
-  const filterContainer = document.querySelector("[data-filter-row]");
   const resultCount = document.querySelector("[data-result-count]");
   const emptyState = document.querySelector("[data-empty-state]");
   const directory = document.querySelector("[data-knowledge-grid]");
 
-  if (!filterContainer || !resultCount || !emptyState || !directory) return;
+  if (!resultCount || !emptyState || !directory) return;
 
   let visibleCount = 0;
   entries.forEach((entry) => {
@@ -84,25 +49,9 @@ function render() {
   });
 
   syncGroups();
-  renderFilters(filterContainer);
-  syncTopicCards();
-
   resultCount.textContent = `${visibleCount} 篇笔记`;
   emptyState.classList.toggle("is-visible", visibleCount === 0);
   directory.hidden = visibleCount === 0;
-}
-
-function initTopicCards() {
-  document.querySelectorAll("[data-topic-category]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.category = button.dataset.topicCategory || "All";
-      render();
-      const source = [...document.querySelectorAll("[data-knowledge-source]")].find(
-        (element) => element.dataset.sourceCategory === state.category,
-      );
-      source?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  });
 }
 
 function scrollToInitialHash() {
@@ -116,8 +65,15 @@ function scrollToInitialHash() {
 }
 
 function initKnowledgeSearch() {
+  const searchForm = document.querySelector("[data-knowledge-search-form]");
   const searchInput = document.querySelector("[data-knowledge-search]");
   const resetButton = document.querySelector("[data-reset-search]");
+
+  searchForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    state.query = searchInput?.value || "";
+    render();
+  });
 
   searchInput?.addEventListener("input", (event) => {
     state.query = event.currentTarget.value;
@@ -126,7 +82,6 @@ function initKnowledgeSearch() {
 
   resetButton?.addEventListener("click", () => {
     state.query = "";
-    state.category = "All";
     if (searchInput) {
       searchInput.value = "";
       searchInput.focus();
@@ -134,7 +89,6 @@ function initKnowledgeSearch() {
     render();
   });
 
-  initTopicCards();
   render();
   scrollToInitialHash();
 }
