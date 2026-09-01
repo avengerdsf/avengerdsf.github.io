@@ -3,6 +3,11 @@ const state = {
   query: "",
 };
 
+const legacyHashAliases = {
+  "leetcode-core-patterns": "leetcode",
+  "machine-learning-roadmap": "machine-learning",
+};
+
 function normalize(value) {
   return String(value || "").toLocaleLowerCase("zh-CN").trim();
 }
@@ -106,9 +111,10 @@ function initTopicCards() {
 }
 
 function scrollToInitialHash() {
-  const id = decodeURIComponent(window.location.hash.slice(1));
-  if (!id) return;
+  const rawId = decodeURIComponent(window.location.hash.slice(1));
+  if (!rawId) return;
 
+  const id = legacyHashAliases[rawId] || rawId;
   requestAnimationFrame(() => {
     document.getElementById(id)?.scrollIntoView({ block: "start" });
   });
