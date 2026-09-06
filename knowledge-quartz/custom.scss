@@ -1,0 +1,42 @@
+/* Keep Quartz controls and navigation native; only tune the knowledge workspace. */
+
+@media (min-width: 1600px) {
+  .page {
+    max-width: calc(100vw - 4rem);
+  }
+
+  .page > #quartz-body {
+    grid-template-columns: 360px minmax(0, 1fr) 320px;
+    column-gap: 1.35rem;
+  }
+
+  .page article > p,
+  .page article > ul,
+  .page article > ol,
+  .page article > blockquote {
+    max-width: 82ch;
+  }
+}
+
+.algorithm-code {
+  margin-top: 1.5rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 0.8rem;
+  overflow: clip;
+}
+
+.algorithm-code > summary {
+  padding: 0.8rem 1rem;
+  color: var(--dark);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.algorithm-code[open] > summary {
+  border-bottom: 1px solid var(--lightgray);
+}
+
+.algorithm-code pre {
+  margin: 0;
+  border-radius: 0;
+}
