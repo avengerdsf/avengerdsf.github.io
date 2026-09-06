@@ -47,7 +47,7 @@ async function validateHomepage() {
 async function validateKnowledgeTree() {
   if (mode !== "source") return;
 
-  await requireFiles([
+  const knowledgeFiles = [
     "knowledge/index.md",
     "knowledge/leetcode/index.md",
     "knowledge/leetcode/hash-table/index.md",
@@ -58,10 +58,31 @@ async function validateKnowledgeTree() {
     "knowledge/leetcode/union-find.md",
     "knowledge/leetcode/topological-sort.md",
     "knowledge/leetcode/dynamic-programming.md",
-  ]);
+  ];
+  await requireFiles(knowledgeFiles);
 
   if (await exists("knowledge/index.html")) {
     errors.push("knowledge/index.html: legacy generated knowledge template must be replaced by knowledge/index.md");
+  }
+
+  const expectedChineseTitles = new Map([
+    ["knowledge/leetcode/index.md", "力扣算法笔记"],
+    ["knowledge/leetcode/hash-table/index.md", "哈希表"],
+    ["knowledge/leetcode/hash-table/two-sum.md", "两数之和"],
+    ["knowledge/leetcode/binary-search.md", "二分查找"],
+    ["knowledge/leetcode/sliding-window.md", "滑动窗口"],
+    ["knowledge/leetcode/dfs-bfs.md", "DFS / BFS"],
+    ["knowledge/leetcode/union-find.md", "并查集"],
+    ["knowledge/leetcode/topological-sort.md", "拓扑排序"],
+    ["knowledge/leetcode/dynamic-programming.md", "动态规划"],
+  ]);
+
+  for (const [file, title] of expectedChineseTitles) {
+    if (!(await exists(file))) continue;
+    const source = await readFile(path.join(root, file), "utf8");
+    if (!source.startsWith("---\n") || !source.includes(`\ntitle: ${title}\n`)) {
+      errors.push(`${file}: must expose the Chinese navigation title "${title}" through frontmatter`);
+    }
   }
 
   if (await exists("knowledge/leetcode/hash-table/two-sum.md")) {
@@ -88,11 +109,18 @@ async function validateQuartzIntegration() {
   if (await exists("knowledge-quartz/quartz.config.yaml")) {
     const config = await readFile(path.join(root, "knowledge-quartz/quartz.config.yaml"), "utf8");
     if (!config.includes("locale: zh-CN")) errors.push("Quartz config: locale must be zh-CN");
+    if (!config.includes("pageTitle: Chenyinhong / 知识库")) {
+      errors.push("Quartz config: page title must use the compact Chinese knowledge-base label");
+    }
     if (!config.includes("baseUrl: avengerdsf.github.io/knowledge")) {
       errors.push("Quartz config: baseUrl must target avengerdsf.github.io/knowledge");
     }
-    for (const required of ["@quartz-community/explorer", "@quartz-community/search", "@quartz-community/graph", "@quartz-community/backlinks", "./local-plugins/algorithm-demo"]) {
+    for (const required of ["@quartz-community/note-properties", "@quartz-community/explorer", "@quartz-community/search", "@quartz-community/graph", "@quartz-community/backlinks", "./local-plugins/algorithm-demo"]) {
       if (!config.includes(required)) errors.push(`Quartz config: missing ${required}`);
+    }
+    const notePropertiesBlock = config.match(/- source: "@quartz-community\/note-properties"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
+    if (!notePropertiesBlock.includes("hidePropertiesView: true")) {
+      errors.push("Quartz config: frontmatter must be parsed while the properties panel stays hidden");
     }
     if (config.includes("@quartz-community/content-meta")) {
       errors.push("Quartz config: content-meta must stay disabled to avoid low-value date/source microcopy");
@@ -104,6 +132,16 @@ async function validateQuartzIntegration() {
     if (!searchBlock.includes("position: header")) {
       errors.push("Quartz config: search must live in the top header instead of the left rail");
     }
+    const tocBlock = config.match(/- source: "@quartz-community\/table-of-contents"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
+    if (!tocBlock.includes("position: right")) {
+      errors.push("Quartz config: the right rail must be reserved for the table of contents");
+    }
+    for (const source of ["graph", "backlinks"]) {
+      const block = config.match(new RegExp(`- source: "@quartz-community/${source}"[\\s\\S]*?(?=\\n  - source:|\\nlayout:)`))?.[0] ?? "";
+      if (!block.includes("position: afterBody")) {
+        errors.push(`Quartz config: ${source} must be demoted below the article body`);
+      }
+    }
   }
 
   if (await exists("knowledge-quartz/custom.scss")) {
@@ -114,11 +152,13 @@ async function validateQuartzIntegration() {
       ".page-header",
       "position: sticky",
       ".sidebar.left",
+      "background: transparent",
       "backdrop-filter: blur(18px)",
       "body::before",
       ".sidebar.right",
+      "max-width: 700px",
     ]) {
-      if (!custom.includes(required)) errors.push(`Quartz visual parity: missing ${required}`);
+      if (!custom.includes(required)) errors.push(`Quartz compact visual contract: missing ${required}`);
     }
   }
 
@@ -130,6 +170,9 @@ async function validateQuartzIntegration() {
     if (!workflow.includes(quartzCommit)) errors.push(`${workflowPath}: Quartz checkout must be pinned to ${quartzCommit}`);
     if (!workflow.includes("quartz plugin install --from-config")) errors.push(`${workflowPath}: must install Quartz plugins from config`);
     if (!workflow.includes("quartz build")) errors.push(`${workflowPath}: must build Quartz`);
+    if (!workflow.includes("title: 机器学习学习笔记")) {
+      errors.push(`${workflowPath}: generated machine-learning index must expose a Chinese explorer title`);
+    }
   }
 
   if (await exists(".github/workflows/deploy.yml")) {

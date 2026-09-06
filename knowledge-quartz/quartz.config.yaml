@@ -1,6 +1,6 @@
 # Quartz 5 knowledge-base configuration
 configuration:
-  pageTitle: Chenyinhong
+  pageTitle: Chenyinhong / 知识库
   pageTitleSuffix: ""
   enableSPA: true
   enablePopovers: true
@@ -74,6 +74,16 @@ plugins:
   - source: "@quartz-community/github-flavored-markdown"
     enabled: true
     order: 40
+  - source: "@quartz-community/note-properties"
+    enabled: true
+    options:
+      includeAll: false
+      includedProperties: []
+      excludedProperties: []
+      hidePropertiesView: true
+      delimiters: "---"
+      language: yaml
+    order: 45
   - source: "@quartz-community/table-of-contents"
     enabled: true
     order: 50
@@ -130,8 +140,8 @@ plugins:
   - source: "@quartz-community/graph"
     enabled: true
     layout:
-      position: right
-      priority: 10
+      position: afterBody
+      priority: 80
   - source: "@quartz-community/search"
     enabled: true
     layout:
@@ -140,8 +150,8 @@ plugins:
   - source: "@quartz-community/backlinks"
     enabled: true
     layout:
-      position: right
-      priority: 50
+      position: afterBody
+      priority: 90
   - source: "@quartz-community/article-title"
     enabled: true
     layout:
@@ -183,18 +193,21 @@ plugins:
     enabled: true
     layout:
       position: afterBody
-      priority: 90
+      priority: 100
 layout:
   byPageType:
     content: {}
     folder:
       positions:
         right: []
+        afterBody: []
     tag:
       positions:
         right: []
+        afterBody: []
     "404":
       positions:
         beforeBody: []
         left: []
         right: []
+        afterBody: []
