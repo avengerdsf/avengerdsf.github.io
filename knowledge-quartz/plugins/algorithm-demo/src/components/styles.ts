@@ -1,7 +1,7 @@
 const styles = String.raw`
 two-sum-demo {
   display: block;
-  margin: 1rem 0 1.8rem;
+  margin: 0.9rem 0 1.55rem;
 }
 
 .two-sum-demo__toolbar,
@@ -17,7 +17,7 @@ two-sum-demo {
 .two-sum-demo__toolbar {
   justify-content: space-between;
   gap: 0.8rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.65rem;
 }
 .two-sum-demo__toolbar > strong {
   color: var(--gray);
@@ -43,22 +43,22 @@ two-sum-demo {
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) 44px minmax(220px, 0.72fr);
   gap: 10px;
-  min-height: 190px;
+  min-height: 150px;
   align-items: stretch;
 }
 .two-sum-demo__array-panel,
 .two-sum-demo__hash-panel {
   min-width: 0;
-  min-height: 190px;
-  padding: 0.85rem;
+  min-height: 150px;
+  padding: 0.75rem;
   border: 1px solid var(--lightgray);
   border-radius: 10px;
   background: transparent;
 }
 .two-sum-demo__stage {
   position: relative;
-  min-height: 6.4rem;
-  padding-top: 2.25rem;
+  min-height: 5.25rem;
+  padding-top: 2rem;
   overflow-x: auto;
 }
 .two-sum-demo__array {
@@ -68,10 +68,10 @@ two-sum-demo {
 }
 .two-sum-demo__cell {
   display: grid;
-  width: 3.9rem;
-  min-height: 3.9rem;
+  width: 3.8rem;
+  min-height: 3.55rem;
   place-items: center;
-  gap: 0.08rem;
+  gap: 0.04rem;
   flex: 0 0 auto;
   border: 1px solid var(--lightgray);
   border-radius: 9px;
@@ -93,7 +93,7 @@ two-sum-demo {
   top: 0;
   left: 0;
   display: grid;
-  width: 3.9rem;
+  width: 3.8rem;
   justify-items: center;
   color: var(--secondary);
   opacity: 0;
@@ -114,10 +114,10 @@ two-sum-demo {
 .two-sum-demo__pointer b { margin-top: -0.2rem; }
 
 .two-sum-demo__calc {
-  min-height: 1.7rem;
+  min-height: 1.55rem;
   flex-wrap: wrap;
   gap: 0.38rem;
-  margin-top: 0.45rem;
+  margin-top: 0.3rem;
   color: var(--gray);
   font-size: 0.82rem;
 }
@@ -147,15 +147,15 @@ two-sum-demo {
 
 .two-sum-demo__hash-panel > strong {
   display: block;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.45rem;
   color: var(--dark);
   font-size: 0.88rem;
 }
-.two-sum-demo__hash { display: grid; gap: 0.35rem; }
+.two-sum-demo__hash { display: grid; gap: 0.3rem; }
 .two-sum-demo__hash-row {
   justify-content: space-between;
   gap: 0.8rem;
-  padding: 0.45rem 0.1rem;
+  padding: 0.4rem 0.1rem;
   border-bottom: 1px solid var(--lightgray);
   transition: transform 220ms ease, border-color 220ms ease, background 220ms ease;
 }
@@ -170,13 +170,13 @@ two-sum-demo {
 }
 .two-sum-demo__hash-row span { color: var(--gray); font-size: 0.75rem; }
 .two-sum-demo__empty {
-  padding: 0.75rem 0;
+  padding: 0.55rem 0;
   color: var(--gray);
   text-align: center;
 }
 .two-sum-demo__status {
-  min-height: 1.5rem;
-  margin-top: 0.55rem;
+  min-height: 1.4rem;
+  margin-top: 0.4rem;
   color: var(--gray);
   font-size: 0.8rem;
 }
