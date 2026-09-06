@@ -1,9 +1,9 @@
-/* Compact homepage-aligned skin for the Quartz knowledge workspace. */
+/* Homepage-aligned, content-first skin for the Quartz knowledge workspace. */
 :root {
   --home-bg: #f7f8fb;
-  --home-surface: rgba(255, 255, 255, 0.82);
+  --home-surface: rgba(255, 255, 255, 0.86);
   --home-surface-solid: #ffffff;
-  --home-surface-muted: #f0f2f7;
+  --home-surface-muted: #f1f3f8;
   --home-text: #182033;
   --home-text-strong: #0d1424;
   --home-muted: #667085;
@@ -26,9 +26,9 @@
 
 :root[saved-theme="dark"] {
   --home-bg: #0c111b;
-  --home-surface: rgba(18, 25, 39, 0.78);
+  --home-surface: rgba(18, 25, 39, 0.86);
   --home-surface-solid: #121927;
-  --home-surface-muted: #182132;
+  --home-surface-muted: #171f2e;
   --home-text: #d9e0ec;
   --home-text-strong: #f7f9fc;
   --home-muted: #97a3b7;
@@ -37,7 +37,7 @@
   --home-accent: #7f9cff;
   --home-accent-strong: #9db1ff;
   --home-accent-soft: rgba(127, 156, 255, 0.12);
-  --home-shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.16);
+  --home-shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.14);
 
   --light: var(--home-bg);
   --lightgray: #252d3a;
@@ -52,7 +52,7 @@
 html { background: var(--home-bg); }
 body {
   min-width: 320px;
-  background: radial-gradient(circle at 12% 8%, var(--home-accent-soft), transparent 30rem), var(--home-bg);
+  background: radial-gradient(circle at 10% 4%, var(--home-accent-soft), transparent 32rem), var(--home-bg);
   color: var(--home-text);
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   line-height: 1.65;
@@ -66,24 +66,29 @@ body::before {
   pointer-events: none;
   background-image: linear-gradient(var(--home-line) 1px, transparent 1px), linear-gradient(90deg, var(--home-line) 1px, transparent 1px);
   background-size: 48px 48px;
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.18), transparent 34%);
-  opacity: 0.22;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.16), transparent 34%);
+  opacity: 0.18;
 }
 
+/* Quartz's default theme caps the page. Force the knowledge workspace to use the display width. */
 .page {
-  width: min(calc(100vw - 48px), 2400px);
-  max-width: none;
-  margin-inline: auto;
+  width: calc(100% - clamp(28px, 2vw, 72px)) !important;
+  max-width: none !important;
+  margin-inline: auto !important;
 }
-.page > #quartz-body { column-gap: clamp(20px, 1.6vw, 34px); }
+.page > #quartz-body {
+  width: 100% !important;
+  max-width: none !important;
+  column-gap: clamp(18px, 1.6vw, 34px) !important;
+}
 
-/* Explorer is navigation, not a giant card. */
+/* The left rail is a quiet knowledge tree, not a panel. */
 .page > #quartz-body .sidebar.left {
   top: 0;
   height: 100vh;
   margin: 0;
-  padding: 24px 0 40px;
-  background: transparent;
+  padding: 20px 0 28px;
+  background: transparent !important;
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -93,49 +98,60 @@ body::before {
 .page-title a {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   color: var(--home-text-strong);
-  font-size: 0.98rem;
-  font-weight: 760;
+  font-size: 0.94rem;
+  font-weight: 750;
 }
 .page-title a::before {
   content: "C";
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
   background: linear-gradient(145deg, var(--home-accent), var(--home-accent-strong));
   color: #fff;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 800;
 }
-.explorer { min-height: 0; flex: 1 1 auto; }
-button.desktop-explorer,
+.explorer {
+  min-height: 0;
+  flex: 1 1 auto;
+  background: transparent !important;
+}
+button.desktop-explorer {
+  display: none;
+}
 button.mobile-explorer {
-  min-height: 34px;
   color: var(--home-muted);
   font-family: inherit;
 }
-button.desktop-explorer h2,
-button.mobile-explorer h2 { font-size: 0.86rem; font-weight: 700; }
+.explorer-content,
+.explorer-content > ul,
+.explorer-content .folder-outer,
+.explorer-content .folder-container {
+  background: transparent !important;
+  box-shadow: none !important;
+}
 .explorer-content {
-  margin-top: 6px;
+  margin-top: 0;
   padding-right: 8px;
   scrollbar-width: thin;
   scrollbar-color: var(--home-line-strong) transparent;
 }
-.explorer-content ul li { margin: 1px 0; }
+.explorer-content ul li { margin: 0; }
 .explorer-content ul li > a,
 .folder-container div > a,
 .folder-container div > button span {
-  min-height: 30px;
-  padding: 3px 7px;
-  border-radius: 8px;
+  min-height: 28px;
+  padding: 2px 7px;
+  border-radius: 7px;
   color: var(--home-muted);
   font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 590;
+  font-size: 0.86rem;
+  font-weight: 580;
+  line-height: 1.35;
   opacity: 1;
 }
 .explorer-content ul li > a:hover,
@@ -150,99 +166,119 @@ button.mobile-explorer h2 { font-size: 0.86rem; font-weight: 700; }
   font-weight: 700;
 }
 .explorer-content .folder-outer > ul {
-  margin-left: 10px;
+  margin-left: 8px;
   padding-left: 8px;
   border-left-color: var(--home-line);
+  background: transparent !important;
 }
 .folder-icon { color: var(--home-muted); }
 
-/* One compact top tool row: search + theme. */
+/* Quartz places beforeBody inside page-header. Keep toolbar and title block vertically separated. */
 .page > #quartz-body .page-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
+  display: block;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+.page-header > header {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 8px;
-  min-height: 68px;
+  min-height: 60px;
   margin: 0;
-  padding: 10px 0;
+  padding: 10px 0 12px;
   border-bottom: 1px solid var(--home-line);
-  background: color-mix(in srgb, var(--home-bg) 84%, transparent);
-  backdrop-filter: blur(18px) saturate(135%);
+}
+.page-header > .popover-hint {
+  display: block;
+  padding: 24px 0 0;
 }
 .page-header .search {
-  flex: 1 1 auto;
-  width: min(52vw, 700px);
-  max-width: 700px;
-  margin-left: auto;
+  flex: 0 1 640px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0;
 }
 .page-header .search > .search-button {
   justify-content: flex-start;
   width: 100%;
-  height: 42px;
-  padding: 0 13px;
+  height: 40px;
+  padding: 0 12px;
   border: 1px solid var(--home-line-strong);
-  border-radius: 12px;
-  background: var(--home-surface-solid);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--home-surface-solid) 90%, transparent);
   color: var(--home-muted);
-  box-shadow: var(--home-shadow-sm);
+  box-shadow: none;
 }
 .page-header .search > .search-button > p { margin: 0; color: inherit; }
 .page-header .search > .search-button svg { margin-left: 0; }
 .darkmode { flex: 0 0 auto; }
 .darkmode button,
 .darkmode .darkmode-button {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border: 1px solid var(--home-line-strong);
-  border-radius: 12px;
-  background: var(--home-surface-solid);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--home-surface-solid) 90%, transparent);
   color: var(--home-muted);
-  box-shadow: var(--home-shadow-sm);
+  box-shadow: none;
 }
 .search > .search-container {
-  background: color-mix(in srgb, var(--home-bg) 56%, transparent);
+  background: color-mix(in srgb, var(--home-bg) 58%, transparent);
   backdrop-filter: blur(14px) saturate(125%);
 }
 .search > .search-container > .search-space {
-  width: min(900px, calc(100vw - 48px));
-  margin-top: 10vh;
+  width: min(860px, calc(100vw - 36px));
+  margin-top: 9vh;
 }
 .search > .search-container > .search-space > input,
 .search > .search-container > .search-space > .search-layout,
 .search > .search-container > .search-space > .tag-suggestions {
   border: 1px solid var(--home-line-strong);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--home-surface-solid);
   box-shadow: 0 20px 60px rgba(25, 35, 58, 0.14);
 }
 
-/* Main article stays flat; spacing establishes hierarchy. */
-.center { padding: 28px 0 72px; }
+/* Breadcrumbs are context, never a second title row. */
 .breadcrumb-container,
 .breadcrumbs {
-  margin-bottom: 10px;
+  margin: 0 0 8px;
   color: var(--home-muted);
-  font-size: 0.84rem;
+  font-size: 0.8rem;
 }
+.breadcrumb-container a,
+.breadcrumbs a { color: var(--home-muted); }
+.breadcrumb-container p,
+.breadcrumbs p { margin: 0 5px; color: var(--home-line-strong); }
+
+/* Main article is flat. Hierarchy comes from type, spacing and dividers. */
+.center {
+  min-width: 0;
+  padding: 0 0 64px;
+}
+.center > article { margin-top: 18px; }
+.center > hr { display: none; }
+.center > .page-footer:empty { display: none; }
 .article-title,
 article > h1:first-child {
-  margin: 0 0 20px;
+  margin: 0;
   color: var(--home-text-strong);
   font-family: inherit;
-  font-size: clamp(2.2rem, 2.8vw, 3.4rem);
-  line-height: 1.03;
-  letter-spacing: -0.045em;
-  font-weight: 770;
+  font-size: clamp(2rem, 2.2vw, 2.8rem);
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+  font-weight: 760;
 }
 article h2 {
-  margin-top: 2.4rem;
+  margin-top: 2rem;
+  margin-bottom: 0.9rem;
   color: var(--home-text-strong);
   font-family: inherit;
-  font-size: 1.42rem;
-  letter-spacing: -0.025em;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
 }
 article h3,
 article h4,
@@ -253,33 +289,44 @@ article li,
 article blockquote { color: var(--home-text); }
 article > p,
 article > ul,
-article > ol { max-width: 84ch; }
+article > ol { max-width: 86ch; }
 article a.internal {
-  padding: 0 0.16rem;
-  border-radius: 5px;
+  padding: 0 0.14rem;
+  border-radius: 4px;
   background: var(--home-accent-soft);
   color: var(--home-accent-strong);
 }
+.algorithm-idea-line {
+  max-width: 86ch;
+  margin: 16px 0 0;
+  padding: 0;
+  color: var(--home-text);
+  font-size: 1rem;
+}
+.algorithm-idea-line strong {
+  margin-right: 0.4rem;
+  color: var(--home-text-strong);
+}
 .callout,
 blockquote {
-  max-width: 84ch;
-  margin: 1.2rem 0;
-  padding: 12px 16px;
+  max-width: 86ch;
+  margin: 1.1rem 0;
+  padding: 10px 14px;
   border: 0;
   border-left: 3px solid var(--home-accent);
-  border-radius: 0 10px 10px 0;
-  background: color-mix(in srgb, var(--home-accent-soft) 62%, transparent);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--home-accent-soft) 56%, transparent);
   box-shadow: none;
 }
 pre,
 figure[data-rehype-pretty-code-figure] > pre {
   border: 1px solid var(--home-line);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--home-surface-solid);
   box-shadow: none;
 }
 .algorithm-code {
-  margin-top: 1.5rem;
+  margin-top: 1.2rem;
   border-top: 1px solid var(--home-line);
   border-bottom: 1px solid var(--home-line);
   border-radius: 0;
@@ -287,107 +334,96 @@ figure[data-rehype-pretty-code-figure] > pre {
   box-shadow: none;
 }
 .algorithm-code > summary {
-  padding: 0.9rem 0;
+  padding: 0.78rem 0;
   color: var(--home-text-strong);
   font-weight: 650;
   cursor: pointer;
 }
 .algorithm-code pre { margin: 0 0 1rem; box-shadow: none; }
 
-/* Right rail is quiet context: TOC only. */
+/* Right rail is only an in-page index. If there are no TOC links, consume zero width. */
 .page > #quartz-body .sidebar.right {
   top: 0;
   height: 100vh;
-  padding: 96px 0 40px;
+  padding: 84px 0 28px;
   gap: 0;
-  background: transparent;
+  background: transparent !important;
   border: 0;
   box-shadow: none;
 }
-.page > #quartz-body .sidebar.right > * {
+.page > #quartz-body .sidebar.right > .toc {
   margin: 0;
-  padding: 0 0 0 16px;
-  border: 0;
+  padding: 0 0 0 14px;
   border-left: 1px solid var(--home-line);
-  border-radius: 0;
-  background: transparent;
+  background: transparent !important;
   box-shadow: none;
 }
-.sidebar.right h3,
-.sidebar.right h4,
+.sidebar.right:not(:has(.toc li a)) {
+  display: none !important;
+}
 .sidebar.right .toc-header {
   margin-top: 0;
   color: var(--home-text-strong);
   font-family: inherit;
-  font-size: 0.86rem;
-  font-weight: 720;
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 .sidebar.right a,
 .sidebar.right li,
-.sidebar.right p { color: var(--home-muted); font-size: 0.82rem; }
+.sidebar.right p { color: var(--home-muted); font-size: 0.79rem; }
 .sidebar.right a:hover,
 .sidebar.right a.in-view { color: var(--home-accent-strong); }
 
-/* Graph/backlinks are secondary and live below the article. */
-.center > .graph,
-.center > .backlinks,
-.center .graph,
-.center .backlinks {
-  margin-top: 18px;
-  padding: 14px 0 0;
-  border-top: 1px solid var(--home-line);
-  background: transparent;
-  box-shadow: none;
-}
-.center .graph {
-  max-height: 54px;
-  overflow: hidden;
-  transition: max-height 220ms ease;
-}
-.center .graph:hover,
-.center .graph:focus-within { max-height: 360px; }
-.center .backlinks:not(:has(li)) { display: none; }
-.center .graph h3,
-.center .backlinks h3 { margin: 0; font-size: 0.92rem; }
+/* No framework branding/footer microcopy in the personal knowledge workspace. */
+footer,
+.page-footer:empty { display: none !important; }
 
-footer { color: var(--home-muted); font-size: 0.82rem; }
-
-@media (min-width: 1600px) {
+@media (min-width: 1200px) {
   .page > #quartz-body {
-    grid-template-columns: 270px minmax(0, 1fr) 220px;
+    grid-template-columns: 240px minmax(0, 1fr) 190px !important;
+  }
+  .page > #quartz-body:not(:has(.sidebar.right .toc li a)) {
+    grid-template-columns: 240px minmax(0, 1fr) 0 !important;
   }
 }
-@media (min-width: 2200px) {
+@media (min-width: 2000px) {
   .page > #quartz-body {
-    grid-template-columns: 290px minmax(0, 1fr) 240px;
+    grid-template-columns: 255px minmax(0, 1fr) 205px !important;
+    column-gap: clamp(24px, 1.8vw, 46px) !important;
   }
+  .page > #quartz-body:not(:has(.sidebar.right .toc li a)) {
+    grid-template-columns: 255px minmax(0, 1fr) 0 !important;
+  }
+  .page-header .search { max-width: 640px; }
 }
 @media (max-width: 1199px) {
-  .page { width: min(calc(100vw - 28px), 100%); }
+  .page { width: calc(100% - 28px) !important; }
+  button.desktop-explorer { display: flex; }
 }
 @media (max-width: 800px) {
-  .page { width: 100%; }
+  .page { width: 100% !important; }
   .page > #quartz-body { padding-inline: 14px; }
   .page > #quartz-body .sidebar.left,
   .page > #quartz-body .sidebar.left:has(.explorer) {
     height: auto;
-    padding: 14px 0 6px;
-    background: transparent;
+    padding: 14px 0 4px;
+    background: transparent !important;
   }
-  .explorer .explorer-content { background: var(--home-bg); }
-  .page > #quartz-body .page-header {
-    min-height: 58px;
-    padding: 7px 0;
+  .explorer .explorer-content { background: var(--home-bg) !important; }
+  .page-header > header {
+    min-height: 54px;
+    padding: 7px 0 9px;
   }
-  .page-header .search { width: auto; max-width: none; }
+  .page-header > .popover-hint { padding-top: 18px; }
+  .page-header .search { flex: 1 1 auto; max-width: none; }
   .page-header .search > .search-button,
   .darkmode button,
-  .darkmode .darkmode-button { height: 42px; min-height: 42px; }
-  .center { padding: 22px 0 48px; }
+  .darkmode .darkmode-button { height: 40px; min-height: 40px; }
+  .center { padding-bottom: 42px; }
   .article-title,
-  article > h1:first-child { font-size: clamp(2rem, 10vw, 2.8rem); }
+  article > h1:first-child { font-size: clamp(1.9rem, 10vw, 2.5rem); }
   .search > .search-container > .search-space {
     width: calc(100vw - 24px);
-    margin-top: 8vh;
+    margin-top: 7vh;
   }
 }

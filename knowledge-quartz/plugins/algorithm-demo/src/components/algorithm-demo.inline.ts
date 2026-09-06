@@ -21,7 +21,7 @@ function mountTwoSumDemo(root: HTMLElement) {
 
   root.innerHTML = `
     <div class="two-sum-demo__toolbar">
-      <strong>nums = [${nums.join(", ")}] · target = ${target}</strong>
+      <strong>target = ${target}</strong>
       <div class="two-sum-demo__controls">
         <button type="button" data-action="play">播放</button>
         <button type="button" data-action="next">下一步</button>
@@ -29,20 +29,20 @@ function mountTwoSumDemo(root: HTMLElement) {
       </div>
     </div>
     <div class="two-sum-demo__workspace">
-      <section class="two-sum-demo__array-panel">
+      <section class="two-sum-demo__array-panel" aria-label="数组">
         <div class="two-sum-demo__stage">
           <div class="two-sum-demo__pointer" aria-hidden="true"><span>i</span><b>▼</b></div>
           <div class="two-sum-demo__array"></div>
         </div>
-        <div class="two-sum-demo__calc">等待开始</div>
+        <div class="two-sum-demo__calc"></div>
       </section>
-      <div class="two-sum-demo__probe" aria-hidden="true"><span>查找补数</span><i></i><b>→</b></div>
+      <div class="two-sum-demo__probe" aria-label="查找补数"><i></i><b>→</b></div>
       <section class="two-sum-demo__hash-panel">
         <strong>哈希表</strong>
         <div class="two-sum-demo__hash"></div>
       </section>
     </div>
-    <div class="two-sum-demo__status" aria-live="polite">指针从左向右扫描数组。</div>
+    <div class="two-sum-demo__status" aria-live="polite"></div>
   `
 
   const array = root.querySelector<HTMLElement>(".two-sum-demo__array")
@@ -141,8 +141,8 @@ function mountTwoSumDemo(root: HTMLElement) {
     pointer.classList.remove("is-visible")
     pointer.style.transform = "translateX(0)"
     probe.classList.remove("is-active")
-    calc.textContent = "等待开始"
-    status.textContent = "指针从左向右扫描数组。"
+    calc.replaceChildren()
+    status.textContent = ""
     renderHash(null)
   }
 

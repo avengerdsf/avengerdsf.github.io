@@ -82,6 +82,43 @@ jobs:
           test -n "$TWO_SUM_PAGE"
           grep -q '两数之和' "$TWO_SUM_PAGE"
           grep -q '哈希表记录元素下标' "$TWO_SUM_PAGE"
+          grep -q 'algorithm-idea-line' "$TWO_SUM_PAGE"
           grep -q 'two-sum-demo' "$TWO_SUM_PAGE"
           ! grep -q 'title: 两数之和' "$TWO_SUM_PAGE"
+          ! grep -q '关系图' "$TWO_SUM_PAGE"
+          ! grep -q '反向链接' "$TWO_SUM_PAGE"
+          ! grep -q '指针从左向右扫描数组' "$TWO_SUM_PAGE"
           grep -R -q 'two-sum-demo__pointer' .build/quartz/public
+
+      - name: Render 2048px visual checkpoint
+        run: |
+          TWO_SUM_PAGE="$(find "$GITHUB_WORKSPACE/.build/quartz/public/leetcode/hash-table" -maxdepth 1 -type f -name 'two-sum*.html' -print -quit)"
+          test -n "$TWO_SUM_PAGE"
+          RELATIVE_PAGE="${TWO_SUM_PAGE#$GITHUB_WORKSPACE/.build/quartz/public/}"
+          cd "$GITHUB_WORKSPACE/.build/quartz/public"
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/quartz-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 20); do
+            curl -fsS "http://127.0.0.1:4173/$RELATIVE_PAGE" >/dev/null && break
+            sleep 0.25
+          done
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          test -n "$CHROME"
+          "$CHROME" \
+            --headless \
+            --no-sandbox \
+            --disable-gpu \
+            --hide-scrollbars \
+            --window-size=2048,1152 \
+            --screenshot="$GITHUB_WORKSPACE/.build/two-sum-visual.png" \
+            "http://127.0.0.1:4173/$RELATIVE_PAGE"
+          test -s "$GITHUB_WORKSPACE/.build/two-sum-visual.png"
+
+      - name: Upload visual checkpoint
+        uses: actions/upload-artifact@v4
+        with:
+          name: two-sum-visual
+          path: .build/two-sum-visual.png
+          if-no-files-found: error
+          retention-days: 7

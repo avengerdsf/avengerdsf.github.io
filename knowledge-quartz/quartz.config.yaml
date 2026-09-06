@@ -137,21 +137,11 @@ plugins:
     layout:
       position: left
       priority: 50
-  - source: "@quartz-community/graph"
-    enabled: true
-    layout:
-      position: afterBody
-      priority: 80
   - source: "@quartz-community/search"
     enabled: true
     layout:
       position: header
       priority: 10
-  - source: "@quartz-community/backlinks"
-    enabled: true
-    layout:
-      position: afterBody
-      priority: 90
   - source: "@quartz-community/article-title"
     enabled: true
     layout:
@@ -169,19 +159,15 @@ plugins:
       priority: 20
   - source: "@quartz-community/breadcrumbs"
     enabled: true
+    options:
+      rootName: "知识库"
+      spacerSymbol: "/"
+      resolveFrontmatterTitle: true
+      showCurrentPage: false
     layout:
       position: beforeBody
       priority: 5
       condition: not-index
-  - source: "@quartz-community/footer"
-    enabled: true
-    options:
-      links:
-        GitHub: https://github.com/avengerdsf
-        主页: https://avengerdsf.github.io/
-    layout:
-      position: footer
-      priority: 50
   - source: "@quartz-community/spacer"
     enabled: true
     options: {}

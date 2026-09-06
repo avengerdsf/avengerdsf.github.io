@@ -16,6 +16,10 @@ async function exists(relativePath) {
   }
 }
 
+async function read(relativePath) {
+  return readFile(path.join(root, relativePath), "utf8");
+}
+
 async function requireFiles(files) {
   for (const file of files) {
     if (!(await exists(file))) errors.push(`Missing required ${mode} file: ${file}`);
@@ -30,42 +34,18 @@ async function validateHomepage() {
     "assets/css/adaptive-grid.css",
     "assets/js/site.js",
   ]);
-
   if (!(await exists("index.html"))) return;
-  const homepage = await readFile(path.join(root, "index.html"), "utf8");
-  if (!homepage.includes('href="assets/css/adaptive-grid.css"')) {
-    errors.push("index.html: adaptive grid stylesheet is not loaded");
-  }
-  if (!homepage.includes('class="brand-avatar"')) {
-    errors.push("index.html: the top-left brand must use the profile avatar");
-  }
-  if (!homepage.includes('href="knowledge/"')) {
-    errors.push("index.html: homepage must keep the knowledge-base entry point");
-  }
+
+  const homepage = await read("index.html");
+  if (!homepage.includes('href="assets/css/adaptive-grid.css"')) errors.push("index.html: adaptive grid stylesheet is not loaded");
+  if (!homepage.includes('class="brand-avatar"')) errors.push("index.html: the top-left brand must use the profile avatar");
+  if (!homepage.includes('href="knowledge/"')) errors.push("index.html: homepage must keep the knowledge-base entry point");
 }
 
 async function validateKnowledgeTree() {
   if (mode !== "source") return;
 
-  const knowledgeFiles = [
-    "knowledge/index.md",
-    "knowledge/leetcode/index.md",
-    "knowledge/leetcode/hash-table/index.md",
-    "knowledge/leetcode/hash-table/two-sum.md",
-    "knowledge/leetcode/binary-search.md",
-    "knowledge/leetcode/sliding-window.md",
-    "knowledge/leetcode/dfs-bfs.md",
-    "knowledge/leetcode/union-find.md",
-    "knowledge/leetcode/topological-sort.md",
-    "knowledge/leetcode/dynamic-programming.md",
-  ];
-  await requireFiles(knowledgeFiles);
-
-  if (await exists("knowledge/index.html")) {
-    errors.push("knowledge/index.html: legacy generated knowledge template must be replaced by knowledge/index.md");
-  }
-
-  const expectedChineseTitles = new Map([
+  const expectedTitles = new Map([
     ["knowledge/leetcode/index.md", "力扣算法笔记"],
     ["knowledge/leetcode/hash-table/index.md", "哈希表"],
     ["knowledge/leetcode/hash-table/two-sum.md", "两数之和"],
@@ -77,21 +57,25 @@ async function validateKnowledgeTree() {
     ["knowledge/leetcode/dynamic-programming.md", "动态规划"],
   ]);
 
-  for (const [file, title] of expectedChineseTitles) {
+  await requireFiles(["knowledge/index.md", ...expectedTitles.keys()]);
+  if (await exists("knowledge/index.html")) errors.push("knowledge/index.html: legacy generated knowledge template must be replaced by knowledge/index.md");
+
+  for (const [file, title] of expectedTitles) {
     if (!(await exists(file))) continue;
-    const source = await readFile(path.join(root, file), "utf8");
+    const source = await read(file);
     if (!source.startsWith("---\n") || !source.includes(`\ntitle: ${title}\n`)) {
       errors.push(`${file}: must expose the Chinese navigation title "${title}" through frontmatter`);
     }
   }
 
-  if (await exists("knowledge/leetcode/hash-table/two-sum.md")) {
-    const twoSum = await readFile(path.join(root, "knowledge/leetcode/hash-table/two-sum.md"), "utf8");
-    if (!twoSum.includes("哈希表记录元素下标，查找当前元素的补数")) {
-      errors.push("two-sum.md: missing the approved core idea sentence");
-    }
-    if (!twoSum.includes("<two-sum-demo")) {
-      errors.push("two-sum.md: missing the reusable Quartz algorithm-demo custom element");
+  const twoSumPath = "knowledge/leetcode/hash-table/two-sum.md";
+  if (await exists(twoSumPath)) {
+    const twoSum = await read(twoSumPath);
+    if (!twoSum.includes("哈希表记录元素下标，查找当前元素的补数")) errors.push("two-sum.md: missing the approved core idea sentence");
+    if (!twoSum.includes("<two-sum-demo")) errors.push("two-sum.md: missing the reusable Quartz algorithm-demo custom element");
+    if (twoSum.includes("[!summary]")) errors.push("two-sum.md: the core idea must be flat prose, not a callout card");
+    if (!twoSum.includes('class="algorithm-idea-line"') || !twoSum.includes("<strong>核心思路：</strong>")) {
+      errors.push("two-sum.md: the flat core idea label is missing");
     }
   }
 }
@@ -99,87 +83,113 @@ async function validateKnowledgeTree() {
 async function validateQuartzIntegration() {
   if (mode !== "source") return;
 
+  const configPath = "knowledge-quartz/quartz.config.yaml";
+  const stylesPath = "knowledge-quartz/custom.scss";
+  const inlinePath = "knowledge-quartz/plugins/algorithm-demo/src/components/algorithm-demo.inline.ts";
+  const demoStylesPath = "knowledge-quartz/plugins/algorithm-demo/src/components/styles.ts";
+
   await requireFiles([
-    "knowledge-quartz/quartz.config.yaml",
-    "knowledge-quartz/custom.scss",
+    configPath,
+    stylesPath,
     "knowledge-quartz/plugins/algorithm-demo/package.json",
     "knowledge-quartz/plugins/algorithm-demo/src/components/AlgorithmDemoAssets.tsx",
+    inlinePath,
+    demoStylesPath,
   ]);
 
-  if (await exists("knowledge-quartz/quartz.config.yaml")) {
-    const config = await readFile(path.join(root, "knowledge-quartz/quartz.config.yaml"), "utf8");
-    if (!config.includes("locale: zh-CN")) errors.push("Quartz config: locale must be zh-CN");
-    if (!config.includes("pageTitle: Chenyinhong / 知识库")) {
-      errors.push("Quartz config: page title must use the compact Chinese knowledge-base label");
-    }
-    if (!config.includes("baseUrl: avengerdsf.github.io/knowledge")) {
-      errors.push("Quartz config: baseUrl must target avengerdsf.github.io/knowledge");
-    }
-    for (const required of ["@quartz-community/note-properties", "@quartz-community/explorer", "@quartz-community/search", "@quartz-community/graph", "@quartz-community/backlinks", "./local-plugins/algorithm-demo"]) {
+  if (await exists(configPath)) {
+    const config = await read(configPath);
+    for (const required of [
+      "locale: zh-CN",
+      "pageTitle: Chenyinhong / 知识库",
+      "baseUrl: avengerdsf.github.io/knowledge",
+      "@quartz-community/note-properties",
+      "@quartz-community/explorer",
+      "@quartz-community/search",
+      "./local-plugins/algorithm-demo",
+      "header: Inter",
+      "body: Inter",
+    ]) {
       if (!config.includes(required)) errors.push(`Quartz config: missing ${required}`);
     }
-    const notePropertiesBlock = config.match(/- source: "@quartz-community\/note-properties"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
-    if (!notePropertiesBlock.includes("hidePropertiesView: true")) {
-      errors.push("Quartz config: frontmatter must be parsed while the properties panel stays hidden");
+
+    for (const removed of ["@quartz-community/content-meta", "@quartz-community/graph", "@quartz-community/backlinks", "@quartz-community/footer"]) {
+      if (config.includes(removed)) errors.push(`Quartz config: ${removed} must stay out of the visible knowledge layout`);
     }
-    if (config.includes("@quartz-community/content-meta")) {
-      errors.push("Quartz config: content-meta must stay disabled to avoid low-value date/source microcopy");
-    }
-    if (!config.includes("header: Inter") || !config.includes("body: Inter")) {
-      errors.push("Quartz config: knowledge typography must reuse the homepage Inter family");
-    }
-    const searchBlock = config.match(/- source: "@quartz-community\/search"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
-    if (!searchBlock.includes("position: header")) {
-      errors.push("Quartz config: search must live in the top header instead of the left rail");
-    }
-    const tocBlock = config.match(/- source: "@quartz-community\/table-of-contents"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
-    if (!tocBlock.includes("position: right")) {
-      errors.push("Quartz config: the right rail must be reserved for the table of contents");
-    }
-    for (const source of ["graph", "backlinks"]) {
-      const block = config.match(new RegExp(`- source: "@quartz-community/${source}"[\\s\\S]*?(?=\\n  - source:|\\nlayout:)`))?.[0] ?? "";
-      if (!block.includes("position: afterBody")) {
-        errors.push(`Quartz config: ${source} must be demoted below the article body`);
-      }
+
+    const noteProperties = config.match(/- source: "@quartz-community\/note-properties"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
+    if (!noteProperties.includes("hidePropertiesView: true")) errors.push("Quartz config: frontmatter must be parsed while the properties panel stays hidden");
+
+    const search = config.match(/- source: "@quartz-community\/search"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
+    if (!search.includes("position: header")) errors.push("Quartz config: search must live in the top header");
+
+    const toc = config.match(/- source: "@quartz-community\/table-of-contents"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
+    if (!toc.includes("position: right")) errors.push("Quartz config: the right rail must be reserved for the table of contents");
+
+    const breadcrumbs = config.match(/- source: "@quartz-community\/breadcrumbs"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
+    for (const required of ['rootName: "知识库"', 'spacerSymbol: "/"', "showCurrentPage: false"]) {
+      if (!breadcrumbs.includes(required)) errors.push(`Quartz config: breadcrumbs missing ${required}`);
     }
   }
 
-  if (await exists("knowledge-quartz/custom.scss")) {
-    const custom = await readFile(path.join(root, "knowledge-quartz/custom.scss"), "utf8");
+  if (await exists(stylesPath)) {
+    const custom = await read(stylesPath);
     for (const required of [
       "--home-bg: #f7f8fb",
       "--home-accent: #3f66f2",
-      ".page-header",
-      "position: sticky",
-      ".sidebar.left",
-      "background: transparent",
-      "backdrop-filter: blur(18px)",
+      ".page-header > header",
+      ".page-header > .popover-hint",
+      "button.desktop-explorer",
+      "max-width: none !important",
+      "grid-template-columns: 240px minmax(0, 1fr) 190px !important",
+      ".sidebar.right:not(:has(.toc li a))",
+      "max-width: 640px",
       "body::before",
-      ".sidebar.right",
-      "max-width: 700px",
+      "footer,",
     ]) {
-      if (!custom.includes(required)) errors.push(`Quartz compact visual contract: missing ${required}`);
+      if (!custom.includes(required)) errors.push(`Quartz visual reflow contract: missing ${required}`);
+    }
+    if (!custom.includes(".page > #quartz-body .page-header {\n  display: block;")) {
+      errors.push("Quartz visual reflow: page-header must stack the toolbar above the title block");
+    }
+  }
+
+  if (await exists(inlinePath)) {
+    const inline = await read(inlinePath);
+    if (inline.includes("nums = [${nums.join")) errors.push("algorithm demo: do not repeat the whole nums array above the visible array");
+    if (!inline.includes("target = ${target}")) errors.push("algorithm demo: target must remain visible in the compact toolbar");
+    if (inline.includes("指针从左向右扫描数组。")) errors.push("algorithm demo: initial helper microcopy must be removed");
+  }
+
+  if (await exists(demoStylesPath)) {
+    const demoStyles = await read(demoStylesPath);
+    for (const required of [
+      "grid-template-columns: minmax(0, 1.65fr) 44px minmax(220px, 0.72fr)",
+      "background: transparent",
+      "min-height: 150px",
+    ]) {
+      if (!demoStyles.includes(required)) errors.push(`algorithm demo compact layout: missing ${required}`);
     }
   }
 
   for (const workflowPath of [".github/workflows/validate.yml", ".github/workflows/deploy.yml"]) {
     if (!(await exists(workflowPath))) continue;
-    const workflow = await readFile(path.join(root, workflowPath), "utf8");
-    if (!workflow.includes('node-version: "24"')) errors.push(`${workflowPath}: Quartz requires Node 24 in CI`);
-    if (!workflow.includes("jackyzha0/quartz")) errors.push(`${workflowPath}: must checkout Quartz`);
-    if (!workflow.includes(quartzCommit)) errors.push(`${workflowPath}: Quartz checkout must be pinned to ${quartzCommit}`);
-    if (!workflow.includes("quartz plugin install --from-config")) errors.push(`${workflowPath}: must install Quartz plugins from config`);
-    if (!workflow.includes("quartz build")) errors.push(`${workflowPath}: must build Quartz`);
-    if (!workflow.includes("title: 机器学习学习笔记")) {
-      errors.push(`${workflowPath}: generated machine-learning index must expose a Chinese explorer title`);
+    const workflow = await read(workflowPath);
+    for (const required of ['node-version: "24"', "jackyzha0/quartz", quartzCommit, "quartz plugin install --from-config", "quartz build", "title: 机器学习学习笔记"]) {
+      if (!workflow.includes(required)) errors.push(`${workflowPath}: missing ${required}`);
+    }
+  }
+
+  if (await exists(".github/workflows/validate.yml")) {
+    const validate = await read(".github/workflows/validate.yml");
+    for (const required of ["Render 2048px visual checkpoint", "--window-size=2048,1152", "two-sum-visual.png"]) {
+      if (!validate.includes(required)) errors.push(`validate.yml: missing visual checkpoint ${required}`);
     }
   }
 
   if (await exists(".github/workflows/deploy.yml")) {
-    const deploy = await readFile(path.join(root, ".github/workflows/deploy.yml"), "utf8");
-    if (!deploy.includes(".build/quartz/public/. _site/knowledge/")) {
-      errors.push("deploy.yml: Quartz output must be staged under _site/knowledge/");
-    }
+    const deploy = await read(".github/workflows/deploy.yml");
+    if (!deploy.includes(".build/quartz/public/. _site/knowledge/")) errors.push("deploy.yml: Quartz output must be staged under _site/knowledge/");
   }
 }
 
