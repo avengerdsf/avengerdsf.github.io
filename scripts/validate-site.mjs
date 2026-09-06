@@ -97,6 +97,29 @@ async function validateQuartzIntegration() {
     if (config.includes("@quartz-community/content-meta")) {
       errors.push("Quartz config: content-meta must stay disabled to avoid low-value date/source microcopy");
     }
+    if (!config.includes("header: Inter") || !config.includes("body: Inter")) {
+      errors.push("Quartz config: knowledge typography must reuse the homepage Inter family");
+    }
+    const searchBlock = config.match(/- source: "@quartz-community\/search"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
+    if (!searchBlock.includes("position: header")) {
+      errors.push("Quartz config: search must live in the top header instead of the left rail");
+    }
+  }
+
+  if (await exists("knowledge-quartz/custom.scss")) {
+    const custom = await readFile(path.join(root, "knowledge-quartz/custom.scss"), "utf8");
+    for (const required of [
+      "--home-bg: #f7f8fb",
+      "--home-accent: #3f66f2",
+      ".page-header",
+      "position: sticky",
+      ".sidebar.left",
+      "backdrop-filter: blur(18px)",
+      "body::before",
+      ".sidebar.right",
+    ]) {
+      if (!custom.includes(required)) errors.push(`Quartz visual parity: missing ${required}`);
+    }
   }
 
   for (const workflowPath of [".github/workflows/validate.yml", ".github/workflows/deploy.yml"]) {
