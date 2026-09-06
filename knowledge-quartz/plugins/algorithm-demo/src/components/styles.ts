@@ -1,6 +1,8 @@
 const styles = String.raw`
 two-sum-demo {
   display: block;
+  width: min(100%, 1160px);
+  max-width: 1160px;
   margin: 0.9rem 0 1.55rem;
 }
 
@@ -175,11 +177,11 @@ two-sum-demo {
   text-align: center;
 }
 .two-sum-demo__status {
-  min-height: 1.4rem;
   margin-top: 0.4rem;
   color: var(--gray);
   font-size: 0.8rem;
 }
+.two-sum-demo__status:empty { display: none; }
 
 @media (max-width: 980px) {
   .two-sum-demo__workspace {
