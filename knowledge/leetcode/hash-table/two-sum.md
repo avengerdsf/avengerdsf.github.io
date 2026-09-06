@@ -5,8 +5,7 @@ tags:
   - 哈希表
 ---
 
-> [!summary] 核心思路
-> 哈希表记录元素下标，查找当前元素的补数 `target - nums[i]`。
+<p class="algorithm-idea-line"><strong>核心思路：</strong>哈希表记录元素下标，查找当前元素的补数 <code>target - nums[i]</code>。</p>
 
 ## 动画
 
