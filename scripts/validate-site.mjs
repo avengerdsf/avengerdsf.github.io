@@ -96,7 +96,7 @@ async function validateKnowledgeTree() {
     if (twoSum.includes("[!summary]")) {
       errors.push("two-sum.md: the core idea must be flat prose, not a callout card");
     }
-    if (!twoSum.includes("**核心思路：**")) {
+    if (!twoSum.includes('class="algorithm-idea-line"') || !twoSum.includes("<strong>核心思路：</strong>")) {
       errors.push("two-sum.md: the flat core idea label is missing");
     }
   }
@@ -169,8 +169,8 @@ async function validateQuartzIntegration() {
     ]) {
       if (!custom.includes(required)) errors.push(`Quartz visual reflow contract: missing ${required}`);
     }
-    if (/\.page\s*>\s*#quartz-body\s*\.page-header\s*\{[\s\S]*?display:\s*flex/.test(custom)) {
-      errors.push("Quartz visual reflow: page-header itself must not flex the toolbar beside the title block");
+    if (!custom.includes(".page > #quartz-body .page-header {\n  display: block;")) {
+      errors.push("Quartz visual reflow: page-header must stack the toolbar above the title block");
     }
   }
 
