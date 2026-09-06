@@ -39,7 +39,7 @@ function render() {
   const emptyState = document.querySelector("[data-empty-state]");
   const directory = document.querySelector("[data-knowledge-grid]");
 
-  if (!resultCount || !emptyState || !directory) return;
+  if (!emptyState || !directory) return;
 
   let visibleCount = 0;
   entries.forEach((entry) => {
@@ -49,7 +49,7 @@ function render() {
   });
 
   syncGroups();
-  resultCount.textContent = `${visibleCount} 篇笔记`;
+  if (resultCount) resultCount.textContent = `${visibleCount} 篇笔记`;
   emptyState.classList.toggle("is-visible", visibleCount === 0);
   directory.hidden = visibleCount === 0;
 }
@@ -68,6 +68,10 @@ function initKnowledgeSearch() {
   const searchForm = document.querySelector("[data-knowledge-search-form]");
   const searchInput = document.querySelector("[data-knowledge-search]");
   const resetButton = document.querySelector("[data-reset-search]");
+  const initialQuery = new URLSearchParams(window.location.search).get("q") || "";
+
+  state.query = initialQuery;
+  if (searchInput) searchInput.value = initialQuery;
 
   searchForm?.addEventListener("submit", (event) => {
     event.preventDefault();
