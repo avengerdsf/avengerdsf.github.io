@@ -93,6 +93,12 @@ async function validateKnowledgeTree() {
     if (!twoSum.includes("<two-sum-demo")) {
       errors.push("two-sum.md: missing the reusable Quartz algorithm-demo custom element");
     }
+    if (twoSum.includes("[!summary]")) {
+      errors.push("two-sum.md: the core idea must be flat prose, not a callout card");
+    }
+    if (!twoSum.includes("**核心思路：**")) {
+      errors.push("two-sum.md: the flat core idea label is missing");
+    }
   }
 }
 
@@ -104,6 +110,8 @@ async function validateQuartzIntegration() {
     "knowledge-quartz/custom.scss",
     "knowledge-quartz/plugins/algorithm-demo/package.json",
     "knowledge-quartz/plugins/algorithm-demo/src/components/AlgorithmDemoAssets.tsx",
+    "knowledge-quartz/plugins/algorithm-demo/src/components/algorithm-demo.inline.ts",
+    "knowledge-quartz/plugins/algorithm-demo/src/components/styles.ts",
   ]);
 
   if (await exists("knowledge-quartz/quartz.config.yaml")) {
@@ -115,8 +123,11 @@ async function validateQuartzIntegration() {
     if (!config.includes("baseUrl: avengerdsf.github.io/knowledge")) {
       errors.push("Quartz config: baseUrl must target avengerdsf.github.io/knowledge");
     }
-    for (const required of ["@quartz-community/note-properties", "@quartz-community/explorer", "@quartz-community/search", "@quartz-community/graph", "@quartz-community/backlinks", "./local-plugins/algorithm-demo"]) {
+    for (const required of ["@quartz-community/note-properties", "@quartz-community/explorer", "@quartz-community/search", "./local-plugins/algorithm-demo"]) {
       if (!config.includes(required)) errors.push(`Quartz config: missing ${required}`);
+    }
+    for (const removed of ["@quartz-community/graph", "@quartz-community/backlinks"]) {
+      if (config.includes(removed)) errors.push(`Quartz config: ${removed} must not occupy the article flow`);
     }
     const notePropertiesBlock = config.match(/- source: "@quartz-community\/note-properties"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
     if (!notePropertiesBlock.includes("hidePropertiesView: true")) {
@@ -136,11 +147,9 @@ async function validateQuartzIntegration() {
     if (!tocBlock.includes("position: right")) {
       errors.push("Quartz config: the right rail must be reserved for the table of contents");
     }
-    for (const source of ["graph", "backlinks"]) {
-      const block = config.match(new RegExp(`- source: "@quartz-community/${source}"[\\s\\S]*?(?=\\n  - source:|\\nlayout:)`))?.[0] ?? "";
-      if (!block.includes("position: afterBody")) {
-        errors.push(`Quartz config: ${source} must be demoted below the article body`);
-      }
+    const breadcrumbsBlock = config.match(/- source: "@quartz-community\/breadcrumbs"[\s\S]*?(?=\n  - source:|\nlayout:)/)?.[0] ?? "";
+    for (const required of ['rootName: "知识库"', 'spacerSymbol: "/"', "showCurrentPage: false"]) {
+      if (!breadcrumbsBlock.includes(required)) errors.push(`Quartz config: breadcrumbs missing ${required}`);
     }
   }
 
@@ -149,16 +158,43 @@ async function validateQuartzIntegration() {
     for (const required of [
       "--home-bg: #f7f8fb",
       "--home-accent: #3f66f2",
-      ".page-header",
-      "position: sticky",
-      ".sidebar.left",
-      "background: transparent",
-      "backdrop-filter: blur(18px)",
+      ".page-header > header",
+      ".page-header > .popover-hint",
+      "button.desktop-explorer",
+      "display: none",
+      "grid-template-columns: 240px minmax(0, 1fr) 190px",
+      ".sidebar.right:not(:has(.toc))",
+      "max-width: 640px",
       "body::before",
-      ".sidebar.right",
-      "max-width: 700px",
     ]) {
-      if (!custom.includes(required)) errors.push(`Quartz compact visual contract: missing ${required}`);
+      if (!custom.includes(required)) errors.push(`Quartz visual reflow contract: missing ${required}`);
+    }
+    if (/\.page\s*>\s*#quartz-body\s*\.page-header\s*\{[\s\S]*?display:\s*flex/.test(custom)) {
+      errors.push("Quartz visual reflow: page-header itself must not flex the toolbar beside the title block");
+    }
+  }
+
+  if (await exists("knowledge-quartz/plugins/algorithm-demo/src/components/algorithm-demo.inline.ts")) {
+    const inline = await readFile(path.join(root, "knowledge-quartz/plugins/algorithm-demo/src/components/algorithm-demo.inline.ts"), "utf8");
+    if (inline.includes("nums = [${nums.join")) {
+      errors.push("algorithm demo: do not repeat the whole nums array above the visible array");
+    }
+    if (!inline.includes("target = ${target}")) {
+      errors.push("algorithm demo: target must remain visible in the compact toolbar");
+    }
+    if (inline.includes("指针从左向右扫描数组。")) {
+      errors.push("algorithm demo: initial helper microcopy must be removed");
+    }
+  }
+
+  if (await exists("knowledge-quartz/plugins/algorithm-demo/src/components/styles.ts")) {
+    const styles = await readFile(path.join(root, "knowledge-quartz/plugins/algorithm-demo/src/components/styles.ts"), "utf8");
+    for (const required of [
+      "grid-template-columns: minmax(0, 1.65fr) 44px minmax(220px, 0.72fr)",
+      "background: transparent",
+      "min-height: 190px",
+    ]) {
+      if (!styles.includes(required)) errors.push(`algorithm demo compact layout: missing ${required}`);
     }
   }
 
