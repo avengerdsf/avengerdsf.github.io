@@ -132,7 +132,6 @@ plugins:
     layout:
       position: right
       priority: 10
-      condition: not-folder
   - source: "@quartz-community/search"
     enabled: true
     layout:
@@ -146,7 +145,6 @@ plugins:
     layout:
       position: right
       priority: 50
-      condition: not-folder
   - source: "@quartz-community/article-title"
     enabled: true
     layout:
@@ -190,3 +188,22 @@ plugins:
     layout:
       position: afterBody
       priority: 90
+layout:
+  groups:
+    toolbar:
+      priority: 35
+      direction: row
+      gap: 0.5rem
+  byPageType:
+    content: {}
+    folder:
+      positions:
+        right: []
+    tag:
+      positions:
+        right: []
+    "404":
+      positions:
+        beforeBody: []
+        left: []
+        right: []
