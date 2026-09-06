@@ -170,6 +170,9 @@ async function validateQuartzIntegration() {
     if (!workflow.includes(quartzCommit)) errors.push(`${workflowPath}: Quartz checkout must be pinned to ${quartzCommit}`);
     if (!workflow.includes("quartz plugin install --from-config")) errors.push(`${workflowPath}: must install Quartz plugins from config`);
     if (!workflow.includes("quartz build")) errors.push(`${workflowPath}: must build Quartz`);
+    if (!workflow.includes("title: 机器学习学习笔记")) {
+      errors.push(`${workflowPath}: generated machine-learning index must expose a Chinese explorer title`);
+    }
   }
 
   if (await exists(".github/workflows/deploy.yml")) {
