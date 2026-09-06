@@ -11,11 +11,18 @@ tags:
 
 <two-sum-demo values="2,7,11,15" target="9"></two-sum-demo>
 
-<details class="algorithm-code">
-<summary>代码</summary>
+## 代码
 
-```text
-// 代码示例待补充
+```python
+class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        st = {}
+
+        for i, x in enumerate(nums):
+            need = target - x
+
+            if need in st:
+                return [st[need], i]
+
+            st[x] = i
 ```
-
-</details>
