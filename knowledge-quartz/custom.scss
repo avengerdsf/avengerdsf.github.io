@@ -70,13 +70,16 @@ body::before {
   opacity: 0.18;
 }
 
+/* Quartz's default theme caps the page. Force the knowledge workspace to use the display width. */
 .page {
-  width: calc(100% - clamp(28px, 2vw, 72px));
-  max-width: none;
-  margin-inline: auto;
+  width: calc(100% - clamp(28px, 2vw, 72px)) !important;
+  max-width: none !important;
+  margin-inline: auto !important;
 }
 .page > #quartz-body {
-  column-gap: clamp(18px, 1.6vw, 34px);
+  width: 100% !important;
+  max-width: none !important;
+  column-gap: clamp(18px, 1.6vw, 34px) !important;
 }
 
 /* The left rail is a quiet knowledge tree, not a panel. */
@@ -85,7 +88,7 @@ body::before {
   height: 100vh;
   margin: 0;
   padding: 20px 0 28px;
-  background: transparent;
+  background: transparent !important;
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -112,13 +115,24 @@ body::before {
   font-size: 0.74rem;
   font-weight: 800;
 }
-.explorer { min-height: 0; flex: 1 1 auto; }
+.explorer {
+  min-height: 0;
+  flex: 1 1 auto;
+  background: transparent !important;
+}
 button.desktop-explorer {
   display: none;
 }
 button.mobile-explorer {
   color: var(--home-muted);
   font-family: inherit;
+}
+.explorer-content,
+.explorer-content > ul,
+.explorer-content .folder-outer,
+.explorer-content .folder-container {
+  background: transparent !important;
+  box-shadow: none !important;
 }
 .explorer-content {
   margin-top: 0;
@@ -155,6 +169,7 @@ button.mobile-explorer {
   margin-left: 8px;
   padding-left: 8px;
   border-left-color: var(--home-line);
+  background: transparent !important;
 }
 .folder-icon { color: var(--home-muted); }
 
@@ -258,11 +273,11 @@ article > h1:first-child {
   font-weight: 760;
 }
 article h2 {
-  margin-top: 2.15rem;
-  margin-bottom: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 0.9rem;
   color: var(--home-text-strong);
   font-family: inherit;
-  font-size: 1.34rem;
+  font-size: 1.3rem;
   letter-spacing: -0.02em;
 }
 article h3,
@@ -283,7 +298,7 @@ article a.internal {
 }
 .algorithm-idea-line {
   max-width: 86ch;
-  margin: 18px 0 0;
+  margin: 16px 0 0;
   padding: 0;
   color: var(--home-text);
   font-size: 1rem;
@@ -311,7 +326,7 @@ figure[data-rehype-pretty-code-figure] > pre {
   box-shadow: none;
 }
 .algorithm-code {
-  margin-top: 1.35rem;
+  margin-top: 1.2rem;
   border-top: 1px solid var(--home-line);
   border-bottom: 1px solid var(--home-line);
   border-radius: 0;
@@ -319,20 +334,20 @@ figure[data-rehype-pretty-code-figure] > pre {
   box-shadow: none;
 }
 .algorithm-code > summary {
-  padding: 0.82rem 0;
+  padding: 0.78rem 0;
   color: var(--home-text-strong);
   font-weight: 650;
   cursor: pointer;
 }
 .algorithm-code pre { margin: 0 0 1rem; box-shadow: none; }
 
-/* Right rail is only an in-page index. Empty rail collapses completely. */
+/* Right rail is only an in-page index. If there are no TOC links, consume zero width. */
 .page > #quartz-body .sidebar.right {
   top: 0;
   height: 100vh;
   padding: 84px 0 28px;
   gap: 0;
-  background: transparent;
+  background: transparent !important;
   border: 0;
   box-shadow: none;
 }
@@ -340,11 +355,11 @@ figure[data-rehype-pretty-code-figure] > pre {
   margin: 0;
   padding: 0 0 0 14px;
   border-left: 1px solid var(--home-line);
-  background: transparent;
+  background: transparent !important;
   box-shadow: none;
 }
-.sidebar.right:not(:has(.toc)) {
-  display: none;
+.sidebar.right:not(:has(.toc li a)) {
+  display: none !important;
 }
 .sidebar.right .toc-header {
   margin-top: 0;
@@ -359,43 +374,42 @@ figure[data-rehype-pretty-code-figure] > pre {
 .sidebar.right a:hover,
 .sidebar.right a.in-view { color: var(--home-accent-strong); }
 
-footer {
-  color: var(--home-muted);
-  font-size: 0.8rem;
-}
+/* No framework branding/footer microcopy in the personal knowledge workspace. */
+footer,
+.page-footer:empty { display: none !important; }
 
 @media (min-width: 1200px) {
   .page > #quartz-body {
-    grid-template-columns: 240px minmax(0, 1fr) 190px;
+    grid-template-columns: 240px minmax(0, 1fr) 190px !important;
   }
-  .page > #quartz-body:not(:has(.sidebar.right .toc)) {
-    grid-template-columns: 240px minmax(0, 1fr) 0;
+  .page > #quartz-body:not(:has(.sidebar.right .toc li a)) {
+    grid-template-columns: 240px minmax(0, 1fr) 0 !important;
   }
 }
 @media (min-width: 2000px) {
   .page > #quartz-body {
-    grid-template-columns: 255px minmax(0, 1fr) 205px;
-    column-gap: clamp(24px, 1.8vw, 46px);
+    grid-template-columns: 255px minmax(0, 1fr) 205px !important;
+    column-gap: clamp(24px, 1.8vw, 46px) !important;
   }
-  .page > #quartz-body:not(:has(.sidebar.right .toc)) {
-    grid-template-columns: 255px minmax(0, 1fr) 0;
+  .page > #quartz-body:not(:has(.sidebar.right .toc li a)) {
+    grid-template-columns: 255px minmax(0, 1fr) 0 !important;
   }
   .page-header .search { max-width: 640px; }
 }
 @media (max-width: 1199px) {
-  .page { width: calc(100% - 28px); }
+  .page { width: calc(100% - 28px) !important; }
   button.desktop-explorer { display: flex; }
 }
 @media (max-width: 800px) {
-  .page { width: 100%; }
+  .page { width: 100% !important; }
   .page > #quartz-body { padding-inline: 14px; }
   .page > #quartz-body .sidebar.left,
   .page > #quartz-body .sidebar.left:has(.explorer) {
     height: auto;
     padding: 14px 0 4px;
-    background: transparent;
+    background: transparent !important;
   }
-  .explorer .explorer-content { background: var(--home-bg); }
+  .explorer .explorer-content { background: var(--home-bg) !important; }
   .page-header > header {
     min-height: 54px;
     padding: 7px 0 9px;
