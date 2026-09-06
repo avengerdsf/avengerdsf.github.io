@@ -168,15 +168,6 @@ plugins:
       position: beforeBody
       priority: 5
       condition: not-index
-  - source: "@quartz-community/footer"
-    enabled: true
-    options:
-      links:
-        GitHub: https://github.com/avengerdsf
-        主页: https://avengerdsf.github.io/
-    layout:
-      position: footer
-      priority: 50
   - source: "@quartz-community/spacer"
     enabled: true
     options: {}
