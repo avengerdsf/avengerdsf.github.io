@@ -42,7 +42,7 @@ function mountTwoSumDemo(root: HTMLElement) {
         <div class="two-sum-demo__hash"></div>
       </section>
     </div>
-    <div class="two-sum-demo__status" aria-live="polite">点击播放或下一步。</div>
+    <div class="two-sum-demo__status" aria-live="polite"></div>
   `
 
   const array = root.querySelector<HTMLElement>(".two-sum-demo__array")
@@ -142,7 +142,7 @@ function mountTwoSumDemo(root: HTMLElement) {
     pointer.style.transform = "translateX(0)"
     probe.classList.remove("is-active")
     calc.replaceChildren()
-    status.textContent = "点击播放或下一步。"
+    status.textContent = ""
     renderHash(null)
   }
 
