@@ -156,6 +156,14 @@
   line-height: 1.55;
 }
 
+[data-source-category="LeetCode Notes"] .knowledge-entry-card[data-source-path*="/"] {
+  display: none;
+}
+
+[data-source-category="LeetCode Notes"] .knowledge-chapter:not(:has(.knowledge-entry-card:not([data-source-path*="/"]))) {
+  display: none;
+}
+
 @media (max-width: 720px) {
   .knowledge-search-form {
     flex-basis: 100%;
