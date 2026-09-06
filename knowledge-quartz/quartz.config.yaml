@@ -1,6 +1,6 @@
 # Quartz 5 knowledge-base configuration
 configuration:
-  pageTitle: Chenyinhong Knowledge
+  pageTitle: Chenyinhong
   pageTitleSuffix: ""
   enableSPA: true
   enablePopovers: true
@@ -16,29 +16,29 @@ configuration:
     fontOrigin: googleFonts
     cdnCaching: true
     typography:
-      header: Schibsted Grotesk
-      body: Source Sans Pro
+      header: Inter
+      body: Inter
       code: IBM Plex Mono
     colors:
       lightMode:
-        light: "#fafbfc"
-        lightgray: "#e5e7eb"
-        gray: "#9ca3af"
-        darkgray: "#374151"
-        dark: "#111827"
-        secondary: "#365fcb"
-        tertiary: "#587bd8"
-        highlight: rgba(54, 95, 203, 0.10)
+        light: "#f7f8fb"
+        lightgray: "#e6e9f0"
+        gray: "#667085"
+        darkgray: "#182033"
+        dark: "#0d1424"
+        secondary: "#3f66f2"
+        tertiary: "#2f53d8"
+        highlight: rgba(63, 102, 242, 0.10)
         textHighlight: "#f6dc6d66"
       darkMode:
-        light: "#111318"
-        lightgray: "#30343c"
-        gray: "#737b8a"
-        darkgray: "#d4d8e0"
-        dark: "#f4f6fa"
-        secondary: "#87a5ff"
-        tertiary: "#a4b9ff"
-        highlight: rgba(135, 165, 255, 0.12)
+        light: "#0c111b"
+        lightgray: "#252d3a"
+        gray: "#97a3b7"
+        darkgray: "#d9e0ec"
+        dark: "#f7f9fc"
+        secondary: "#7f9cff"
+        tertiary: "#9db1ff"
+        highlight: rgba(127, 156, 255, 0.12)
         textHighlight: "#a28d2c66"
 plugins:
   - source: "@quartz-community/created-modified-date"
@@ -135,11 +135,8 @@ plugins:
   - source: "@quartz-community/search"
     enabled: true
     layout:
-      position: left
-      priority: 20
-      group: toolbar
-      groupOptions:
-        grow: true
+      position: header
+      priority: 10
   - source: "@quartz-community/backlinks"
     enabled: true
     layout:
@@ -158,9 +155,8 @@ plugins:
   - source: "@quartz-community/darkmode"
     enabled: true
     layout:
-      position: left
-      priority: 30
-      group: toolbar
+      position: header
+      priority: 20
   - source: "@quartz-community/breadcrumbs"
     enabled: true
     layout:
@@ -189,11 +185,6 @@ plugins:
       position: afterBody
       priority: 90
 layout:
-  groups:
-    toolbar:
-      priority: 35
-      direction: row
-      gap: 0.5rem
   byPageType:
     content: {}
     folder:
