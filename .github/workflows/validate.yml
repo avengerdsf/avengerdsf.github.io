@@ -21,25 +21,59 @@ jobs:
           repository: avengerdsf/machine-learning-notes
           path: .build/machine-learning-notes
 
+      - name: Checkout Quartz 5
+        uses: actions/checkout@v5
+        with:
+          repository: jackyzha0/quartz
+          ref: f1fba3fc55cbf60a60a5d09c95a49c042cdab63a
+          path: .build/quartz
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: "24"
 
-      - name: Install Markdown build dependencies
-        run: npm install --no-audit --no-fund
-
       - name: Validate source architecture
         run: node scripts/validate-site.mjs --source
 
-      - name: Test algorithm demo
-        working-directory: knowledge-quartz/plugins/algorithm-demo
+      - name: Prepare Quartz workspace
+        run: |
+          rm -rf .build/quartz/content .build/quartz/local-plugins
+          mkdir -p .build/quartz/content .build/quartz/local-plugins
+          cp -R knowledge/. .build/quartz/content/
+          mkdir -p .build/quartz/content/machine-learning
+          rsync -a --exclude=.git --exclude=.github .build/machine-learning-notes/ .build/quartz/content/machine-learning/
+          if [ -f .build/quartz/content/machine-learning/README.md ]; then
+            mv .build/quartz/content/machine-learning/README.md .build/quartz/content/machine-learning/index.md
+          fi
+          cp knowledge-quartz/quartz.config.yaml .build/quartz/quartz.config.yaml
+          cp knowledge-quartz/custom.scss .build/quartz/quartz/styles/custom.scss
+          cp -R knowledge-quartz/plugins/algorithm-demo .build/quartz/local-plugins/algorithm-demo
+
+      - name: Test and build algorithm demo plugin
+        working-directory: .build/quartz/local-plugins/algorithm-demo
         run: |
           npm install --no-audit --no-fund
           npm test
+          npm run build
 
-      - name: Build knowledge from Markdown
-        run: node scripts/build-knowledge.mjs --ml-source .build/machine-learning-notes
+      - name: Install Quartz dependencies
+        working-directory: .build/quartz
+        run: npm ci --no-audit --no-fund
 
-      - name: Validate generated site
-        run: node scripts/validate-site.mjs --built
+      - name: Install Quartz plugins
+        working-directory: .build/quartz
+        run: npx quartz plugin install --from-config --concurrency 2
+
+      - name: Build Quartz knowledge base
+        working-directory: .build/quartz
+        run: npx quartz build
+
+      - name: Verify generated knowledge site
+        run: |
+          test -f .build/quartz/public/index.html
+          TWO_SUM_PAGE="$(find .build/quartz/public/leetcode/hash-table -maxdepth 1 -type f -name 'two-sum*.html' -print -quit)"
+          test -n "$TWO_SUM_PAGE"
+          grep -q '哈希表记录元素下标' "$TWO_SUM_PAGE"
+          grep -q 'two-sum-demo' "$TWO_SUM_PAGE"
+          grep -R -q 'two-sum-demo__pointer' .build/quartz/public
