@@ -23,12 +23,16 @@ const sourceRequiredFiles = [
   "package.json",
   "scripts/build-knowledge.mjs",
   "knowledge-source/leetcode/README.md",
+  "knowledge-source/leetcode/hash-table.md",
+  "knowledge-source/leetcode/hash-table/two-sum.md",
   "knowledge-source/leetcode/binary-search.md",
   "knowledge-source/leetcode/sliding-window.md",
   "knowledge-source/leetcode/dfs-bfs.md",
   "knowledge-source/leetcode/union-find.md",
   "knowledge-source/leetcode/topological-sort.md",
   "knowledge-source/leetcode/dynamic-programming.md",
+  "assets/css/algorithm-demo.css",
+  "assets/js/algorithm-demo.js",
 ];
 
 const builtRequiredFiles = [
@@ -39,6 +43,8 @@ const builtRequiredFiles = [
   "knowledge/machine-learning/chapter_01_supervised_learning/01_learning_regression/index.html",
   "knowledge/machine-learning/chapter_04_decision_trees/05_xgboost/index.html",
   "knowledge/leetcode/binary-search/index.html",
+  "knowledge/leetcode/hash-table/index.html",
+  "knowledge/leetcode/hash-table/two-sum/index.html",
 ];
 
 async function exists(target) {
@@ -159,36 +165,54 @@ async function validateProjectTaxonomy() {
 }
 
 async function validateKnowledgeDirectoryStyles() {
-  const cssPath = path.join(root, "assets/css/knowledge-directory.css");
-  if (!(await exists(cssPath))) return;
-  const css = await readFile(cssPath, "utf8");
+  const directoryCssPath = path.join(root, "assets/css/knowledge-directory.css");
+  const articleCssPath = path.join(root, "assets/css/knowledge-markdown.css");
+  if (!(await exists(directoryCssPath)) || !(await exists(articleCssPath))) return;
 
-  if (!/\.knowledge-search-panel\s*\{[^}]*display\s*:\s*flex/s.test(css)) {
-    errors.push("assets/css/knowledge-directory.css: search panel must use flex layout");
-  }
-  if (!/\.knowledge-search-form\s*\{[^}]*flex\s*:\s*0\s+1\s+78%/s.test(css)) {
-    errors.push("assets/css/knowledge-directory.css: search width must be proportional instead of fixed");
-  }
-  if (/width\s*:\s*min\(100%,\s*620px\)/.test(css)) {
-    errors.push("assets/css/knowledge-directory.css: search must not be locked to 620px");
-  }
-  if (!/\.knowledge-search-field\s*\{[^}]*display\s*:\s*flex/s.test(css)) {
-    errors.push("assets/css/knowledge-directory.css: search field must use flex layout");
-  }
-  if (!/\.knowledge-page-hero h1\s*\{[^}]*font-size\s*:\s*clamp\(/s.test(css)) {
+  const directoryCss = await readFile(directoryCssPath, "utf8");
+  const articleCss = await readFile(articleCssPath, "utf8");
+
+  if (!/\.knowledge-page-hero h1\s*\{[^}]*font-size\s*:\s*clamp\(/s.test(directoryCss)) {
     errors.push("assets/css/knowledge-directory.css: knowledge title needs its own restrained size");
   }
-  if (!/\.knowledge-search-submit\s*\{[^}]*border-radius\s*:\s*999px/s.test(css)) {
-    errors.push("assets/css/knowledge-directory.css: search submit must be visually embedded in the field");
+  if (!/\.knowledge-card-grid\s*\{[^}]*grid-template-columns\s*:\s*repeat\(auto-fit,\s*minmax\(/s.test(directoryCss)) {
+    errors.push("assets/css/knowledge-directory.css: knowledge cards must add columns on wide displays");
   }
-  if (!/\.knowledge-card-meta,\s*\n?\.knowledge-card-open\s*\{[^}]*display\s*:\s*none/s.test(css)) {
-    errors.push("assets/css/knowledge-directory.css: card metadata/read microcopy must be hidden");
+  if (/\.knowledge-entry-card\s*>\s*p\s*\{/.test(directoryCss)) {
+    errors.push("assets/css/knowledge-directory.css: directory cards should not reserve styling for summary microcopy");
   }
-  if (!/\.knowledge-chapter-head span\s*\{[^}]*display\s*:\s*none/s.test(css)) {
-    errors.push("assets/css/knowledge-directory.css: chapter source-label microcopy must be hidden");
+  if (!/\.knowledge-header-search\s*\{[^}]*display\s*:\s*flex/s.test(articleCss)) {
+    errors.push("assets/css/knowledge-markdown.css: top knowledge search must be shared by index and article pages");
   }
-  if (!/\.knowledge-source-header \.eyebrow,\s*\n?\.knowledge-source-header > p:last-child\s*\{[^}]*display\s*:\s*none/s.test(css)) {
-    errors.push("assets/css/knowledge-directory.css: repeated source/category microcopy must be hidden");
+  if (!/\.article-side-nav\s*\{[^}]*position\s*:\s*fixed/s.test(articleCss)) {
+    errors.push("assets/css/knowledge-markdown.css: previous/next navigation must float beside desktop article content");
+  }
+  if (!/\.article-side-link\s*\{[^}]*width\s*:\s*52px/s.test(articleCss)) {
+    errors.push("assets/css/knowledge-markdown.css: side navigation must stay compact until interaction");
+  }
+}
+
+async function validateAlgorithmDemoSource() {
+  if (mode !== "source") return;
+
+  const jsPath = path.join(root, "assets/js/algorithm-demo.js");
+  const cssPath = path.join(root, "assets/css/algorithm-demo.css");
+  if (!(await exists(jsPath)) || !(await exists(cssPath))) return;
+
+  const js = await readFile(jsPath, "utf8");
+  const css = await readFile(cssPath, "utf8");
+
+  if (!js.includes("algorithm-demo-pointer")) {
+    errors.push("assets/js/algorithm-demo.js: two-sum animation must render a moving array pointer");
+  }
+  if (!js.includes("algorithm-demo-probe")) {
+    errors.push("assets/js/algorithm-demo.js: two-sum animation must render a visual probe toward the hash table");
+  }
+  if (!/\.algorithm-demo-pointer\s*\{[^}]*transition\s*:\s*transform/s.test(css)) {
+    errors.push("assets/css/algorithm-demo.css: array pointer must move with a transform transition");
+  }
+  if (!/\.algorithm-demo-hash-row\.is-match/.test(css)) {
+    errors.push("assets/css/algorithm-demo.css: matched hash rows must have a dedicated visual state");
   }
 }
 
@@ -204,20 +228,28 @@ async function validateSourceArchitecture() {
     if (!knowledgePage.includes('href="../assets/css/knowledge-directory.css"')) {
       errors.push("knowledge/index.html: compact directory stylesheet is not loaded");
     }
+    if (!knowledgePage.includes('class="knowledge-header-search"')) {
+      errors.push("knowledge/index.html: search must live in the top navigation area");
+    }
     if (!knowledgePage.includes('data-knowledge-search-form')) {
-      errors.push("knowledge/index.html: search must use the compact embedded-button form");
+      errors.push("knowledge/index.html: top search must keep the knowledge filtering hook");
     }
-    if (!knowledgePage.includes('data-knowledge-search-submit')) {
-      errors.push("knowledge/index.html: search submit button must live inside the search field");
-    }
-    if (/<label class="knowledge-search-field">[\s\S]*?<span class="skip-link">/.test(knowledgePage)) {
-      errors.push("knowledge/index.html: global skip-link must not be reused as inline search helper text");
+    if (knowledgePage.includes('class="search-panel reveal knowledge-search-panel"')) {
+      errors.push("knowledge/index.html: body-level search panel must be removed after moving search to the top");
     }
     if (knowledgePage.includes("01 / LEETCODE") || knowledgePage.includes("02 / ML")) {
       errors.push("knowledge/index.html: topic cards must not add redundant small-code labels");
     }
     if (knowledgePage.includes("Index → Article Subpage → Source Markdown")) {
       errors.push("knowledge/index.html: remove redundant directory pipeline microcopy");
+    }
+  }
+
+  const hashTablePath = path.join(root, "knowledge-source/leetcode/hash-table.md");
+  if (await exists(hashTablePath)) {
+    const hashTablePage = await readFile(hashTablePath, "utf8");
+    if (hashTablePage.includes("knowledge-card-meta") || hashTablePage.includes("hash-table/two-sum.md")) {
+      errors.push("knowledge-source/leetcode/hash-table.md: child directory must not expose source-path metadata");
     }
   }
 
@@ -257,6 +289,14 @@ async function validateBuiltKnowledge() {
   if (knowledgePage.includes('class="markdown-body') || knowledgePage.includes('class="katex')) {
     errors.push("knowledge/index.html: article bodies/formulas must live on subpages, not the index");
   }
+  if (knowledgePage.includes("knowledge-card-meta") || knowledgePage.includes("knowledge-card-open")) {
+    errors.push("knowledge/index.html: generated directory cards must not emit source-path/read microcopy");
+  }
+
+  const cardAnchors = [...knowledgePage.matchAll(/<a class="knowledge-entry-card"[\s\S]*?<\/a>/g)].map((match) => match[0]);
+  if (cardAnchors.some((card) => /<p>/.test(card))) {
+    errors.push("knowledge/index.html: top-level directory cards must stay title-only");
+  }
 
   const mlCards = [...knowledgePage.matchAll(/data-category=["']Machine Learning["'][^>]*data-knowledge-entry/g)].length;
   const leetcodeCards = [...knowledgePage.matchAll(/data-category=["']LeetCode Notes["'][^>]*data-knowledge-entry/g)].length;
@@ -271,6 +311,7 @@ async function validateBuiltKnowledge() {
     'href="machine-learning/chapter_01_supervised_learning/01_learning_regression/"',
     'href="machine-learning/chapter_04_decision_trees/05_xgboost/"',
     'href="leetcode/binary-search/"',
+    'href="leetcode/hash-table/"',
   ]) {
     if (!knowledgePage.includes(expectedHref)) {
       errors.push(`knowledge/index.html: missing generated article link ${expectedHref}`);
@@ -282,8 +323,8 @@ async function validateBuiltKnowledge() {
   if (mlArticleFiles.length < 20) {
     errors.push(`knowledge/machine-learning: expected at least 20 article pages, found ${mlArticleFiles.length}`);
   }
-  if (leetcodeArticleFiles.length < 6) {
-    errors.push(`knowledge/leetcode: expected at least 6 article pages, found ${leetcodeArticleFiles.length}`);
+  if (leetcodeArticleFiles.length < 8) {
+    errors.push(`knowledge/leetcode: expected at least 8 article pages, found ${leetcodeArticleFiles.length}`);
   }
 
   const regressionPath = path.join(root, "knowledge/machine-learning/chapter_01_supervised_learning/01_learning_regression/index.html");
@@ -295,8 +336,25 @@ async function validateBuiltKnowledge() {
     if (!regressionPage.includes('class="katex')) {
       errors.push("linear regression article: missing build-time KaTeX formulas");
     }
-    if (!regressionPage.includes("chapter_01_supervised_learning/01_learning_regression.md")) {
-      errors.push("linear regression article: missing source Markdown path");
+    if (!regressionPage.includes('class="knowledge-header-search"')) {
+      errors.push("linear regression article: missing top knowledge search control");
+    }
+    if (!regressionPage.includes('class="article-side-nav"')) {
+      errors.push("linear regression article: missing compact previous/next navigation");
+    }
+    if (regressionPage.includes("knowledge-article-source") || regressionPage.includes("chapter_01_supervised_learning/01_learning_regression.md")) {
+      errors.push("linear regression article: source Markdown metadata must not be exposed in the page chrome");
+    }
+  }
+
+  const twoSumPath = path.join(root, "knowledge/leetcode/hash-table/two-sum/index.html");
+  if (await exists(twoSumPath)) {
+    const twoSumPage = await readFile(twoSumPath, "utf8");
+    if (twoSumPage.includes("knowledge-article-source") || twoSumPage.includes("hash-table/two-sum.md")) {
+      errors.push("two-sum article: source Markdown metadata must not be exposed in the page chrome");
+    }
+    if (!twoSumPage.includes('data-two-sum-demo')) {
+      errors.push("two-sum article: missing algorithm animation mount point");
     }
   }
 
@@ -340,6 +398,7 @@ await validateRequiredFiles();
 await validateHomepageAdaptiveGrid();
 await validateProjectTaxonomy();
 await validateKnowledgeDirectoryStyles();
+await validateAlgorithmDemoSource();
 await validateSourceArchitecture();
 await validateBuiltKnowledge();
 

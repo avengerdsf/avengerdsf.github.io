@@ -45,7 +45,7 @@ function createCell(value, index) {
   const cell = document.createElement("div");
   cell.className = "algorithm-demo-cell";
   cell.dataset.index = String(index);
-  cell.innerHTML = `<small>下标 ${index}</small><strong>${value}</strong>`;
+  cell.innerHTML = `<span>${index}</span><strong>${value}</strong>`;
   return cell;
 }
 
@@ -64,32 +64,44 @@ function initTwoSumDemo(root) {
 
   root.innerHTML = `
     <div class="algorithm-demo-head">
-      <div class="algorithm-demo-meta">
-        <strong>两数之和</strong>
-        <span>nums = [${nums.join(", ")}] · target = ${target}</span>
-      </div>
+      <strong>nums = [${nums.join(", ")}] · target = ${target}</strong>
       <div class="algorithm-demo-controls">
         <button type="button" data-action="play">播放</button>
         <button type="button" data-action="next">下一步</button>
         <button type="button" data-action="reset">重置</button>
       </div>
     </div>
+
     <div class="algorithm-demo-grid">
-      <div class="algorithm-demo-panel">
-        <span>数组</span>
-        <div class="algorithm-demo-array"></div>
-        <div class="algorithm-demo-flow">当前元素与补数会显示在这里。</div>
+      <div class="algorithm-demo-panel algorithm-demo-array-panel">
+        <div class="algorithm-demo-array-stage">
+          <div class="algorithm-demo-pointer" aria-hidden="true"><span>i</span><b>▼</b></div>
+          <div class="algorithm-demo-array"></div>
+        </div>
+        <div class="algorithm-demo-calc">target - nums[i]</div>
       </div>
-      <div class="algorithm-demo-panel">
-        <span>哈希表：元素 → 下标</span>
+
+      <div class="algorithm-demo-probe" aria-hidden="true">
+        <span data-probe-value>补数</span>
+        <i></i>
+        <b>→</b>
+      </div>
+
+      <div class="algorithm-demo-panel algorithm-demo-hash-panel">
+        <strong>哈希表</strong>
         <div class="algorithm-demo-hash"></div>
       </div>
     </div>
-    <div class="algorithm-demo-status" aria-live="polite">从左到右遍历数组，先查补数，再记录当前元素。</div>
+
+    <div class="algorithm-demo-status" aria-live="polite">移动指针，计算补数并查询哈希表。</div>
   `;
 
+  const stage = root.querySelector(".algorithm-demo-array-stage");
   const array = root.querySelector(".algorithm-demo-array");
-  const flow = root.querySelector(".algorithm-demo-flow");
+  const pointer = root.querySelector(".algorithm-demo-pointer");
+  const calc = root.querySelector(".algorithm-demo-calc");
+  const probe = root.querySelector(".algorithm-demo-probe");
+  const probeValue = root.querySelector("[data-probe-value]");
   const hash = root.querySelector(".algorithm-demo-hash");
   const status = root.querySelector(".algorithm-demo-status");
   const playButton = root.querySelector('[data-action="play"]');
@@ -98,12 +110,13 @@ function initTwoSumDemo(root) {
 
   nums.forEach((value, index) => array.append(createCell(value, index)));
 
-  function renderHash(entries) {
+  function renderHash(entries, matchValue, storedValue) {
     hash.replaceChildren();
+
     if (!entries.length) {
       const empty = document.createElement("div");
       empty.className = "algorithm-demo-empty";
-      empty.textContent = "当前为空";
+      empty.textContent = "空";
       hash.append(empty);
       return;
     }
@@ -111,7 +124,9 @@ function initTwoSumDemo(root) {
     entries.forEach(([value, index]) => {
       const row = document.createElement("div");
       row.className = "algorithm-demo-hash-row";
-      row.innerHTML = `<code>${value}</code><span>下标 ${index}</span>`;
+      if (value === matchValue) row.classList.add("is-match");
+      if (value === storedValue) row.classList.add("is-new");
+      row.innerHTML = `<code>${value}</code><span>${index}</span>`;
       hash.append(row);
     });
   }
@@ -122,29 +137,50 @@ function initTwoSumDemo(root) {
     });
   }
 
+  function movePointer(cell) {
+    if (!cell || !stage || !pointer) return;
+    const pointerWidth = pointer.offsetWidth || cell.offsetWidth;
+    const x = cell.offsetLeft + (cell.offsetWidth - pointerWidth) / 2;
+    const y = Math.max(0, cell.offsetTop - 32);
+    pointer.style.transform = `translate(${x}px, ${y}px)`;
+    pointer.classList.add("is-visible");
+  }
+
+  function setProbe(text, active = true) {
+    probeValue.textContent = text;
+    probe.classList.toggle("is-active", active);
+  }
+
   function renderStep(step) {
     clearCellState();
     const currentCell = array.querySelector(`[data-index="${step.index}"]`);
     currentCell?.classList.add("is-current");
-    renderHash(step.hash);
-    flow.innerHTML = `当前 <code>nums[${step.index}] = ${step.value}</code> → 补数 <code>${target} - ${step.value} = ${step.complement}</code>`;
+    movePointer(currentCell);
+
+    calc.innerHTML = `<code>${target}</code> − <code>${step.value}</code> = <strong>${step.complement}</strong>`;
 
     if (step.type === "probe") {
+      renderHash(step.hash, step.matchIndex === undefined ? undefined : step.complement);
+      setProbe(`查 ${step.complement}`);
       status.textContent = step.matchIndex === undefined
-        ? `哈希表中没有 ${step.complement}，下一步记录当前元素 ${step.value}。`
-        : `哈希表中找到 ${step.complement}，对应下标 ${step.matchIndex}。`;
+        ? `补数 ${step.complement} 未命中。`
+        : `补数 ${step.complement} 命中下标 ${step.matchIndex}。`;
       return;
     }
 
     if (step.type === "store") {
-      status.textContent = `记录 ${step.value} → 下标 ${step.index}。`;
+      renderHash(step.hash, undefined, step.value);
+      setProbe(`存 ${step.value}`);
+      status.textContent = `记录 ${step.value} → ${step.index}。`;
       return;
     }
 
+    renderHash(step.hash, step.complement);
+    setProbe(`命中 ${step.complement}`);
     const matchCell = array.querySelector(`[data-index="${step.matchIndex}"]`);
     currentCell?.classList.add("is-answer");
     matchCell?.classList.add("is-answer");
-    status.textContent = `找到答案：下标 ${step.matchIndex} 和 ${step.index}。`;
+    status.textContent = `答案：${step.matchIndex}，${step.index}。`;
   }
 
   function stop() {
@@ -158,8 +194,11 @@ function initTwoSumDemo(root) {
     stepIndex = 0;
     clearCellState();
     renderHash([]);
-    flow.textContent = "当前元素与补数会显示在这里。";
-    status.textContent = "从左到右遍历数组，先查补数，再记录当前元素。";
+    pointer.classList.remove("is-visible");
+    pointer.style.transform = "translate(0, 0)";
+    calc.textContent = "target - nums[i]";
+    setProbe("补数", false);
+    status.textContent = "移动指针，计算补数并查询哈希表。";
   }
 
   function next() {
@@ -183,9 +222,7 @@ function initTwoSumDemo(root) {
     if (stepIndex >= steps.length) reset();
     playButton.textContent = "暂停";
     next();
-    if (stepIndex < steps.length) {
-      timer = window.setInterval(next, 1300);
-    }
+    if (stepIndex < steps.length) timer = window.setInterval(next, 1450);
   });
 
   nextButton.addEventListener("click", () => {
@@ -195,6 +232,13 @@ function initTwoSumDemo(root) {
   });
 
   resetButton.addEventListener("click", reset);
+  window.addEventListener("resize", () => {
+    if (stepIndex === 0) return;
+    const currentStep = steps[Math.min(stepIndex - 1, steps.length - 1)];
+    const currentCell = array.querySelector(`[data-index="${currentStep.index}"]`);
+    movePointer(currentCell);
+  });
+
   reset();
 }
 

@@ -24,7 +24,7 @@ const sources = [
     anchor: "leetcode",
     category: "LeetCode Notes",
     label: "力扣算法笔记",
-    description: "按算法模式整理的站内 Markdown 笔记。",
+    breadcrumbLabel: "力扣",
     root: leetcodeSource,
     copyDestination: "leetcode",
     repoBaseUrl: "https://github.com/avengerdsf/avengerdsf.github.io/blob/main/knowledge-source/leetcode",
@@ -35,7 +35,7 @@ const sources = [
     anchor: "machine-learning",
     category: "Machine Learning",
     label: "Machine Learning Notes",
-    description: "目录与文章均在构建时直接读取 avengerdsf/machine-learning-notes。",
+    breadcrumbLabel: "机器学习",
     root: mlSource,
     copyDestination: "machine-learning-notes",
     repoBaseUrl: "https://github.com/avengerdsf/machine-learning-notes/blob/main",
@@ -104,13 +104,8 @@ function rewriteFragment(rawFragment) {
 function rewriteHref(rawHref) {
   if (!renderContext || !rawHref) return rawHref;
 
-  if (rawHref.startsWith("#")) {
-    return rewriteFragment(rawHref);
-  }
-
-  if (isExternalUrl(rawHref) || rawHref.startsWith("/")) {
-    return rawHref;
-  }
+  if (rawHref.startsWith("#")) return rewriteFragment(rawHref);
+  if (isExternalUrl(rawHref) || rawHref.startsWith("/")) return rawHref;
 
   const { pathname, suffix } = splitHref(rawHref);
   const resolved = normalizeSourcePath(renderContext.entry.relativePath, pathname);
@@ -203,14 +198,6 @@ function parseReadmeOutline(readme, knownFiles) {
     seen.add(relativePath);
   }
 
-  const missing = [...knownFiles].filter((file) => !seen.has(file));
-  if (missing.length) {
-    groups.push({
-      title: "其他笔记",
-      entries: missing.map((relativePath) => ({ relativePath, label: "", description: "" })),
-    });
-  }
-
   return groups.filter((group) => group.entries.length);
 }
 
@@ -258,20 +245,42 @@ async function loadSource(source) {
   const markdownFiles = await collectMarkdownFiles(source.root);
   const knownFiles = new Set(markdownFiles);
   const groups = parseReadmeOutline(readme, knownFiles);
+  const listedMeta = new Map();
 
   for (const group of groups) {
-    for (const entry of group.entries) {
-      const markdown = await readFile(path.join(source.root, entry.relativePath), "utf8");
-      entry.markdown = markdown;
-      entry.title = extractTitle(markdown, entry.label || path.basename(entry.relativePath, ".md"));
-      entry.summary = entry.description || extractSummary(markdown);
-      entry.chapter = group.title;
-      assignArticleLocation(source, entry);
+    for (const item of group.entries) {
+      listedMeta.set(item.relativePath, { ...item, chapter: group.title });
     }
   }
 
-  const orderedEntries = groups.flatMap((group) => group.entries);
-  const entryMap = new Map(orderedEntries.map((entry) => [entry.relativePath, entry]));
+  const allEntries = [];
+  for (const relativePath of markdownFiles) {
+    const meta = listedMeta.get(relativePath);
+    const markdown = await readFile(path.join(source.root, relativePath), "utf8");
+    const entry = {
+      relativePath,
+      label: meta?.label || "",
+      description: meta?.description || "",
+      markdown,
+      title: extractTitle(markdown, meta?.label || path.basename(relativePath, ".md")),
+      summary: meta?.description || extractSummary(markdown),
+      chapter: meta?.chapter || path.posix.dirname(relativePath).split("/").filter(Boolean).at(-1) || source.label,
+    };
+    assignArticleLocation(source, entry);
+    allEntries.push(entry);
+  }
+
+  const entryMap = new Map(allEntries.map((entry) => [entry.relativePath, entry]));
+  for (const group of groups) {
+    group.entries = group.entries.map((item) => entryMap.get(item.relativePath)).filter(Boolean);
+  }
+
+  const listedPaths = new Set(groups.flatMap((group) => group.entries.map((entry) => entry.relativePath)));
+  const orderedEntries = [
+    ...groups.flatMap((group) => group.entries),
+    ...allEntries.filter((entry) => !listedPaths.has(entry.relativePath)),
+  ];
+
   return { source, groups, orderedEntries, entryMap };
 }
 
@@ -281,22 +290,11 @@ function renderCard(bundle, entry) {
     entry.summary,
     entry.chapter,
     bundle.source.category,
-    entry.relativePath,
   ].filter(Boolean).join(" ");
 
-  const summary = entry.summary
-    ? `<p>${escapeHtml(entry.summary)}</p>`
-    : `<p class="knowledge-card-path">${escapeHtml(entry.relativePath)}</p>`;
-
   return `
-<a class="knowledge-entry-card" href="${escapeHtml(entry.href)}" data-category="${escapeHtml(bundle.source.category)}" data-knowledge-entry data-source-path="${escapeHtml(entry.relativePath)}" data-search="${escapeHtml(searchText)}">
-  <div class="knowledge-card-meta">
-    <span>${escapeHtml(bundle.source.category)}</span>
-    <code>${escapeHtml(entry.relativePath)}</code>
-  </div>
+<a class="knowledge-entry-card" href="${escapeHtml(entry.href)}" data-category="${escapeHtml(bundle.source.category)}" data-knowledge-entry data-search="${escapeHtml(searchText)}">
   <h4>${escapeHtml(entry.title)}</h4>
-  ${summary}
-  <span class="knowledge-card-open">阅读笔记 <span aria-hidden="true">→</span></span>
 </a>`;
 }
 
@@ -305,10 +303,7 @@ function renderIndexBundle(bundle) {
     const cards = group.entries.map((entry) => renderCard(bundle, entry)).join("\n");
     return `
 <section class="knowledge-chapter" data-knowledge-group>
-  <div class="knowledge-chapter-head">
-    <span>${escapeHtml(bundle.source.label)}</span>
-    <h3>${escapeHtml(group.title)}</h3>
-  </div>
+  <div class="knowledge-chapter-head"><h3>${escapeHtml(group.title)}</h3></div>
   <div class="knowledge-card-grid">${cards}
   </div>
 </section>`;
@@ -316,22 +311,37 @@ function renderIndexBundle(bundle) {
 
   return `
 <section class="knowledge-source-block" id="${escapeHtml(bundle.source.anchor)}" data-knowledge-source data-source-category="${escapeHtml(bundle.source.category)}">
-  <header class="knowledge-source-header">
-    <p class="eyebrow">${escapeHtml(bundle.source.category)}</p>
-    <h2>${escapeHtml(bundle.source.label)}</h2>
-    <p>${escapeHtml(bundle.source.description)}</p>
-  </header>
+  <header class="knowledge-source-header"><h2>${escapeHtml(bundle.source.label)}</h2></header>
   ${groups}
 </section>`;
 }
 
-function renderSiblingLink(label, entry) {
-  if (!entry) return `<span class="article-sibling is-empty"></span>`;
+function renderSiblingLink(direction, entry) {
+  if (!entry) return "";
+  const isPrevious = direction === "prev";
   return `
-<a class="article-sibling" href="${escapeHtml(entry.publicUrl)}">
-  <span>${escapeHtml(label)}</span>
+<a class="article-side-link ${isPrevious ? "is-prev" : "is-next"}" href="${escapeHtml(entry.publicUrl)}" aria-label="${isPrevious ? "上一篇" : "下一篇"}：${escapeHtml(entry.title)}">
+  <span class="article-side-arrow" aria-hidden="true">${isPrevious ? "←" : "→"}</span>
   <strong>${escapeHtml(entry.title)}</strong>
 </a>`;
+}
+
+function renderBreadcrumb(bundle, entry) {
+  const items = [
+    '<a href="/knowledge/">知识库</a>',
+    `<a href="/knowledge/#${escapeHtml(bundle.source.anchor)}">${escapeHtml(bundle.source.breadcrumbLabel)}</a>`,
+  ];
+
+  const parentStem = path.posix.dirname(entry.stem);
+  const parentEntry = parentStem && parentStem !== "." ? bundle.entryMap.get(`${parentStem}.md`) : null;
+  if (parentEntry) {
+    items.push(`<a href="${escapeHtml(parentEntry.publicUrl)}">${escapeHtml(parentEntry.title)}</a>`);
+  } else if (entry.chapter && entry.chapter !== bundle.source.label && entry.chapter !== entry.title) {
+    items.push(`<span>${escapeHtml(entry.chapter)}</span>`);
+  }
+  items.push(`<span>${escapeHtml(entry.title)}</span>`);
+
+  return items.join('<span aria-hidden="true">/</span>');
 }
 
 function renderArticlePage(bundle, entry, previousEntry, nextEntry) {
@@ -344,10 +354,8 @@ function renderArticlePage(bundle, entry, previousEntry, nextEntry) {
 
   const body = marked.parse(stripLeadingTitle(entry.markdown));
   const titleId = slugify(entry.title) || "article-title";
-  const sourceUrl = `${bundle.source.repoBaseUrl}/${encodePath(entry.relativePath)}`;
   const canonicalUrl = `https://avengerdsf.github.io${entry.publicUrl}`;
   const summaryMeta = entry.summary ? `<meta name="description" content="${escapeHtml(entry.summary)}">` : "";
-  const summary = entry.summary ? `<p class="knowledge-article-summary">${escapeHtml(entry.summary)}</p>` : "";
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -363,6 +371,7 @@ function renderArticlePage(bundle, entry, previousEntry, nextEntry) {
   <link rel="stylesheet" href="/assets/css/site.css">
   <link rel="stylesheet" href="/assets/css/round2.css">
   <link rel="stylesheet" href="/assets/css/knowledge-markdown.css">
+  <link rel="stylesheet" href="/assets/css/knowledge-directory.css">
   <link rel="stylesheet" href="/assets/vendor/katex/katex.min.css">
   <title>${escapeHtml(entry.title)} · Knowledge Base</title>
 </head>
@@ -370,11 +379,18 @@ function renderArticlePage(bundle, entry, previousEntry, nextEntry) {
   <a class="skip-link" href="#main">跳到主要内容</a>
 
   <header class="site-header">
-    <div class="container nav-shell">
+    <div class="container nav-shell knowledge-nav-shell">
       <a class="brand" href="/" aria-label="返回主页">
         <img class="brand-avatar" src="https://avatars.githubusercontent.com/u/119413549?v=4" alt="" width="34" height="34">
         <span>Chenyinhong</span>
       </a>
+
+      <form class="knowledge-header-search" action="/knowledge/" method="get" role="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+        <input type="search" name="q" placeholder="搜索笔记…" autocomplete="off" aria-label="搜索知识库">
+        <button type="submit">搜索</button>
+      </form>
+
       <button class="nav-control icon-button nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="site-nav" aria-label="打开导航">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
       </button>
@@ -393,30 +409,18 @@ function renderArticlePage(bundle, entry, previousEntry, nextEntry) {
 
   <main id="main" class="knowledge-article-main">
     <div class="container knowledge-article-container">
-      <nav class="knowledge-breadcrumb" aria-label="面包屑">
-        <a href="/knowledge/">知识库</a>
-        <span aria-hidden="true">/</span>
-        <a href="/knowledge/#${escapeHtml(bundle.source.anchor)}">${escapeHtml(bundle.source.label)}</a>
-        <span aria-hidden="true">/</span>
-        <span>${escapeHtml(entry.chapter)}</span>
-      </nav>
+      <nav class="knowledge-breadcrumb" aria-label="面包屑">${renderBreadcrumb(bundle, entry)}</nav>
 
       <article class="knowledge-article">
         <header class="knowledge-article-header">
-          <p class="eyebrow">${escapeHtml(bundle.source.category)} · ${escapeHtml(entry.chapter)}</p>
           <h1 id="${escapeHtml(titleId)}">${escapeHtml(entry.title)}</h1>
-          ${summary}
-          <div class="knowledge-article-source">
-            <code>${escapeHtml(entry.relativePath)}</code>
-            <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noreferrer noopener">查看源 Markdown ↗</a>
-          </div>
         </header>
         <div class="markdown-body">${body}</div>
       </article>
 
-      <nav class="article-sibling-nav" aria-label="上一篇和下一篇">
-        ${renderSiblingLink("上一篇", previousEntry)}
-        ${renderSiblingLink("下一篇", nextEntry)}
+      <nav class="article-side-nav" aria-label="上一篇和下一篇">
+        ${renderSiblingLink("prev", previousEntry)}
+        ${renderSiblingLink("next", nextEntry)}
       </nav>
     </div>
   </main>
@@ -424,7 +428,7 @@ function renderArticlePage(bundle, entry, previousEntry, nextEntry) {
   <footer class="site-footer">
     <div class="container footer-row">
       <span>© <span data-current-year>2026</span> Chenyinhong · Knowledge Base.</span>
-      <div class="footer-links"><a href="/knowledge/">知识库</a><a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noreferrer noopener">Source ↗</a></div>
+      <div class="footer-links"><a href="/knowledge/">知识库</a><a href="/">主页</a></div>
     </div>
   </footer>
 
