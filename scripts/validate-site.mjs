@@ -5,6 +5,7 @@ import process from "node:process";
 const root = process.cwd();
 const mode = process.argv.includes("--built") ? "built" : "source";
 const errors = [];
+const quartzCommit = "f1fba3fc55cbf60a60a5d09c95a49c042cdab63a";
 
 async function exists(relativePath) {
   try {
@@ -74,8 +75,51 @@ async function validateKnowledgeTree() {
   }
 }
 
+async function validateQuartzIntegration() {
+  if (mode !== "source") return;
+
+  await requireFiles([
+    "knowledge-quartz/quartz.config.yaml",
+    "knowledge-quartz/custom.scss",
+    "knowledge-quartz/plugins/algorithm-demo/package.json",
+    "knowledge-quartz/plugins/algorithm-demo/src/components/AlgorithmDemoAssets.tsx",
+  ]);
+
+  if (await exists("knowledge-quartz/quartz.config.yaml")) {
+    const config = await readFile(path.join(root, "knowledge-quartz/quartz.config.yaml"), "utf8");
+    if (!config.includes("locale: zh-CN")) errors.push("Quartz config: locale must be zh-CN");
+    if (!config.includes("baseUrl: avengerdsf.github.io/knowledge")) {
+      errors.push("Quartz config: baseUrl must target avengerdsf.github.io/knowledge");
+    }
+    for (const required of ["@quartz-community/explorer", "@quartz-community/search", "@quartz-community/graph", "@quartz-community/backlinks", "./local-plugins/algorithm-demo"]) {
+      if (!config.includes(required)) errors.push(`Quartz config: missing ${required}`);
+    }
+    if (config.includes("@quartz-community/content-meta")) {
+      errors.push("Quartz config: content-meta must stay disabled to avoid low-value date/source microcopy");
+    }
+  }
+
+  for (const workflowPath of [".github/workflows/validate.yml", ".github/workflows/deploy.yml"]) {
+    if (!(await exists(workflowPath))) continue;
+    const workflow = await readFile(path.join(root, workflowPath), "utf8");
+    if (!workflow.includes('node-version: "24"')) errors.push(`${workflowPath}: Quartz requires Node 24 in CI`);
+    if (!workflow.includes("jackyzha0/quartz")) errors.push(`${workflowPath}: must checkout Quartz`);
+    if (!workflow.includes(quartzCommit)) errors.push(`${workflowPath}: Quartz checkout must be pinned to ${quartzCommit}`);
+    if (!workflow.includes("quartz plugin install --from-config")) errors.push(`${workflowPath}: must install Quartz plugins from config`);
+    if (!workflow.includes("quartz build")) errors.push(`${workflowPath}: must build Quartz`);
+  }
+
+  if (await exists(".github/workflows/deploy.yml")) {
+    const deploy = await readFile(path.join(root, ".github/workflows/deploy.yml"), "utf8");
+    if (!deploy.includes(".build/quartz/public/. _site/knowledge/")) {
+      errors.push("deploy.yml: Quartz output must be staged under _site/knowledge/");
+    }
+  }
+}
+
 await validateHomepage();
 await validateKnowledgeTree();
+await validateQuartzIntegration();
 
 if (errors.length) {
   console.error(`Site ${mode} validation failed with ${errors.length} error(s):`);
