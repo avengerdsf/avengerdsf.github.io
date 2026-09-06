@@ -77,6 +77,8 @@ async function validateKnowledgeTree() {
     if (!twoSum.includes('class="algorithm-idea-line"') || !twoSum.includes("<strong>核心思路：</strong>")) {
       errors.push("two-sum.md: the flat core idea label is missing");
     }
+    if (twoSum.includes('<details class="algorithm-code">')) errors.push("two-sum.md: code authoring must use a plain Markdown fenced block, not hand-written details HTML");
+    if (!twoSum.includes("## 代码\n\n```python")) errors.push("two-sum.md: code must be directly pasteable as a standard Python fenced block under the 代码 heading");
   }
 }
 
@@ -146,6 +148,8 @@ async function validateQuartzIntegration() {
       "max-width: 640px",
       "body::before",
       "footer,",
+      "margin-inline: clamp(28px, 1.8vw, 48px) !important",
+      ".article-back-link",
     ]) {
       if (!custom.includes(required)) errors.push(`Quartz visual reflow contract: missing ${required}`);
     }
@@ -159,6 +163,9 @@ async function validateQuartzIntegration() {
     if (inline.includes("nums = [${nums.join")) errors.push("algorithm demo: do not repeat the whole nums array above the visible array");
     if (!inline.includes("target = ${target}")) errors.push("algorithm demo: target must remain visible in the compact toolbar");
     if (inline.includes("指针从左向右扫描数组。")) errors.push("algorithm demo: initial helper microcopy must be removed");
+    for (const required of ["mountArticleBackLink", "article-back-link", "mountMarkdownCodeBlocks", "algorithm-code"]) {
+      if (!inline.includes(required)) errors.push(`knowledge page behavior: missing ${required}`);
+    }
   }
 
   if (await exists(demoStylesPath)) {
