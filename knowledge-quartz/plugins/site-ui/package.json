@@ -4,10 +4,20 @@
   "private": true,
   "type": "module",
   "main": "./dist/components.mjs",
-  "exports": {".": "./dist/components.mjs", "./components": "./dist/components.mjs"},
-  "scripts": {"build": "node build.mjs", "test": "node --test test/*.test.mjs"},
-  "peerDependencies": {"preact": "^10.0.0"},
-  "engines": {"node": ">=22"},
+  "exports": {
+    ".": "./dist/components.mjs",
+    "./components": "./dist/components.mjs"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "peerDependencies": {
+    "preact": "^10.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "quartz": {
     "name": "site-ui",
     "displayName": "Homepage-aligned knowledge workspace",
@@ -18,9 +28,11 @@
     "defaultEnabled": true,
     "defaultOptions": {},
     "components": {
-      "KnowledgeBrand": {"displayName": "Site brand", "defaultPosition": "left", "defaultPriority": 10},
-      "KnowledgeActions": {"displayName": "Note actions", "defaultPosition": "header", "defaultPriority": 30},
-      "KnowledgeOverview": {"displayName": "Notebook overview", "defaultPosition": "beforeBody", "defaultPriority": 20}
+      "KnowledgeBrand": {
+        "displayName": "Site brand",
+        "defaultPosition": "left",
+        "defaultPriority": 10
+      }
     }
   }
 }

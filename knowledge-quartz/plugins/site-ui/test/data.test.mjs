@@ -54,3 +54,11 @@ test('knowledge links stay under the deployment base and encode special characte
   assert.equal(noteHref('leetcode/两数之和'), '/knowledge/leetcode/%E4%B8%A4%E6%95%B0%E4%B9%8B%E5%92%8C');
   assert.equal(noteHref('leetcode/index'), '/knowledge/leetcode/');
 });
+
+test('each local layout plugin exposes one component for Quartz 5 source-name lookup', async () => {
+  const {readFile} = await import('node:fs/promises');
+  for (const name of ['site-ui', 'knowledge-actions', 'knowledge-overview']) {
+    const manifest = JSON.parse(await readFile(new URL(`../../${name}/package.json`, import.meta.url), 'utf8'));
+    assert.equal(Object.keys(manifest.quartz.components).length, 1, `${name} must be directly addressable by the pinned Quartz layout loader`);
+  }
+});

@@ -1,0 +1,26 @@
+{
+  "name": "@avengerdsf/quartz-knowledge-actions",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./components": "./dist/index.mjs"
+  },
+  "quartz": {
+    "name": "knowledge-actions",
+    "displayName": "KnowledgeActions",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "defaultEnabled": true,
+    "components": {
+      "KnowledgeActions": {
+        "displayName": "KnowledgeActions",
+        "defaultPosition": "header",
+        "defaultPriority": 30
+      }
+    }
+  }
+}

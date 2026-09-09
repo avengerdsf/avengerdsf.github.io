@@ -78,6 +78,7 @@ jobs:
 
       - name: Verify generated knowledge site
         run: |
+          set -x
           test -f .build/quartz/public/index.html
           TWO_SUM_PAGE="$(find .build/quartz/public/leetcode/hash-table -maxdepth 1 -type f -name 'two-sum*.html' -print -quit)"
           test -n "$TWO_SUM_PAGE"
@@ -97,6 +98,7 @@ jobs:
           ! grep -q '0 个目录 · 0 篇笔记' .build/quartz/public/index.html
 
       - name: Render 2048px visual checkpoint
+        if: ${{ !cancelled() && hashFiles('.build/quartz/public/index.html') != '' }}
         run: |
           mkdir -p .build/preview/knowledge
           cp index.html .build/preview/
@@ -121,6 +123,7 @@ jobs:
           test -s .build/knowledge-mobile.png
 
       - name: Upload visual checkpoint
+        if: ${{ !cancelled() && hashFiles('.build/quartz/public/index.html') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: knowledge-ui-screenshots
@@ -131,6 +134,7 @@ jobs:
           retention-days: 7
 
       - name: Upload reviewable site
+        if: ${{ !cancelled() && hashFiles('.build/quartz/public/index.html') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: knowledge-ui-preview
