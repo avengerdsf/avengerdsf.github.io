@@ -45,6 +45,14 @@ try:
                 assert overflow <= 1, f'{name} at {width}px overflows by {overflow}px'
                 assert page.locator('.kb-brand').count() == 1
                 assert page.locator('.kb-new-note').count() == 1
+                brand_height = page.locator('.kb-brand').bounding_box()['height']
+                assert brand_height <= 64, f'Brand must stay a compact single row: {brand_height}'
+                if width > 800:
+                    geometry = page.evaluate('''() => ({
+                        actual: document.querySelector('.center').getBoundingClientRect().width,
+                        track: parseFloat(getComputedStyle(document.querySelector('#quartz-body')).gridTemplateColumns.split(' ')[1])
+                    })''')
+                    assert geometry['actual'] >= geometry['track'] - 1, f'Reading pane does not fill its grid track: {geometry}'
                 if name == 'index':
                     links = page.locator('.kb-note-list a').evaluate_all('(links) => links.map(a => a.getAttribute("href"))')
                     assert links and all('/404' not in link and '/tags/' not in link for link in links)
@@ -56,6 +64,8 @@ try:
                     expect(page.locator('.algorithm-code')).to_have_count(1)
                     assert 'knowledge/leetcode/hash-table/two-sum.md' in page.locator('.kb-edit-link').get_attribute('href')
                 page.screenshot(path=str(output/f'{name}-{width}.png'), full_page=False)
+                if width == 1440:
+                    (output/f'{name}-dom.html').write_text(page.content())
                 results.append({'page':name, 'width':width, 'overflow':overflow})
         page.set_viewport_size({'width':1440, 'height':1000})
         page.goto(origin+'/knowledge/', wait_until='networkidle')

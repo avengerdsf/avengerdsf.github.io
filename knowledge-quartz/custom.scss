@@ -92,7 +92,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
   font-weight: 750;
   white-space: nowrap;
 }
-.kb-brand img { width: 34px; height: 34px; border-radius: 12px; }
+.kb-brand img { display: block; flex: 0 0 34px; width: 34px; height: 34px; margin: 0; border-radius: 12px; }
 .explorer { min-height: 0; }
 button.desktop-explorer { display: none; }
 .explorer-content {
@@ -124,7 +124,7 @@ button.desktop-explorer { display: none; }
 .explorer-content .folder-outer > ul { margin-left: 9px; padding-left: 7px; border-left-color: var(--line); }
 .folder-icon { color: var(--muted); }
 
-.center { min-width: 0; padding: 22px 0 52px; }
+.page > #quartz-body > .center { width: 100%; min-width: 0; max-width: none; margin: 0; padding: 22px 0 52px; }
 .page > #quartz-body .page-header {
   display: block;
   margin: 0;
@@ -294,7 +294,7 @@ footer, .page-footer:empty { display: none !important; }
   .page > #quartz-body .sidebar.left:has(.explorer) { position: relative; flex-direction: row; align-items: center; justify-content: space-between; height: auto; padding: 14px 0 12px; gap: 10px; }
   .explorer .explorer-content { background: var(--surface-solid); border-radius: var(--radius-md); }
   button.mobile-explorer { min-height: 44px; color: var(--text); }
-  .center { width: 100%; padding: 0 0 28px; }
+  .page > #quartz-body > .center { padding: 0 0 28px; }
   .page-header > header { flex-wrap: wrap; margin-bottom: 16px; gap: 6px; }
   .page-header .search { flex: 1 1 150px; max-width: none; }
   .kb-actions { flex: 1 1 100%; justify-content: flex-end; border-top: 1px solid var(--line); padding-top: 5px; }

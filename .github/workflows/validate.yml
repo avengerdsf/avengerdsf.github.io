@@ -98,6 +98,11 @@ jobs:
           grep -q 'kb-edit-link' "$TWO_SUM_PAGE"
           ! grep -q '0 个目录 · 0 篇笔记' .build/quartz/public/index.html
 
+      - name: Install CJK fonts for UI checks
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y fonts-noto-cjk
+
       - name: Render 2048px visual checkpoint
         if: ${{ !cancelled() && hashFiles('.build/quartz/public/index.html') != '' }}
         run: |
