@@ -44,6 +44,9 @@ jobs:
       - name: Validate source architecture
         run: node scripts/validate-site.mjs --source
 
+      - name: Test knowledge UI and shared theme
+        run: node --test knowledge-quartz/plugins/site-ui/test/*.test.mjs scripts/test/prepare-knowledge.test.mjs
+
       - name: Prepare Quartz workspace
         run: |
           rm -rf .build/quartz/content .build/quartz/local-plugins
@@ -58,9 +61,7 @@ jobs:
             { printf '%s\n' '---' 'title: 机器学习学习笔记' '---' ''; cat .build/quartz/content/machine-learning/index.md; } > .build/quartz/content/machine-learning/index.md.tmp
             mv .build/quartz/content/machine-learning/index.md.tmp .build/quartz/content/machine-learning/index.md
           fi
-          cp knowledge-quartz/quartz.config.yaml .build/quartz/quartz.config.yaml
-          cp knowledge-quartz/custom.scss .build/quartz/quartz/styles/custom.scss
-          cp -R knowledge-quartz/plugins/algorithm-demo .build/quartz/local-plugins/algorithm-demo
+          node scripts/prepare-knowledge.mjs
 
       - name: Test and build algorithm demo plugin
         working-directory: .build/quartz/local-plugins/algorithm-demo
@@ -90,9 +91,18 @@ jobs:
           test -n "$TWO_SUM_PAGE"
           grep -q '两数之和' "$TWO_SUM_PAGE"
           grep -q '哈希表记录元素下标' "$TWO_SUM_PAGE"
+          grep -q 'algorithm-idea-line' "$TWO_SUM_PAGE"
           grep -q 'two-sum-demo' "$TWO_SUM_PAGE"
           ! grep -q 'title: 两数之和' "$TWO_SUM_PAGE"
+          ! grep -q '关系图' "$TWO_SUM_PAGE"
+          ! grep -q '反向链接' "$TWO_SUM_PAGE"
+          ! grep -q '指针从左向右扫描数组' "$TWO_SUM_PAGE"
           grep -R -q 'two-sum-demo__pointer' .build/quartz/public
+          grep -q 'kb-overview' .build/quartz/public/index.html
+          grep -q 'kb-brand' "$TWO_SUM_PAGE"
+          grep -q 'kb-new-note' "$TWO_SUM_PAGE"
+          grep -q 'kb-edit-link' "$TWO_SUM_PAGE"
+          ! grep -q '0 个目录 · 0 篇笔记' .build/quartz/public/index.html
 
       - name: Stage static site
         run: |

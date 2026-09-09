@@ -36,6 +36,9 @@ jobs:
       - name: Validate source architecture
         run: node scripts/validate-site.mjs --source
 
+      - name: Test knowledge UI and shared theme
+        run: node --test knowledge-quartz/plugins/site-ui/test/*.test.mjs scripts/test/prepare-knowledge.test.mjs
+
       - name: Prepare Quartz workspace
         run: |
           rm -rf .build/quartz/content .build/quartz/local-plugins
@@ -50,9 +53,7 @@ jobs:
             { printf '%s\n' '---' 'title: 机器学习学习笔记' '---' ''; cat .build/quartz/content/machine-learning/index.md; } > .build/quartz/content/machine-learning/index.md.tmp
             mv .build/quartz/content/machine-learning/index.md.tmp .build/quartz/content/machine-learning/index.md
           fi
-          cp knowledge-quartz/quartz.config.yaml .build/quartz/quartz.config.yaml
-          cp knowledge-quartz/custom.scss .build/quartz/quartz/styles/custom.scss
-          cp -R knowledge-quartz/plugins/algorithm-demo .build/quartz/local-plugins/algorithm-demo
+          node scripts/prepare-knowledge.mjs
 
       - name: Test and build algorithm demo plugin
         working-directory: .build/quartz/local-plugins/algorithm-demo
@@ -89,36 +90,50 @@ jobs:
           ! grep -q '反向链接' "$TWO_SUM_PAGE"
           ! grep -q '指针从左向右扫描数组' "$TWO_SUM_PAGE"
           grep -R -q 'two-sum-demo__pointer' .build/quartz/public
+          grep -q 'kb-overview' .build/quartz/public/index.html
+          grep -q 'kb-brand' "$TWO_SUM_PAGE"
+          grep -q 'kb-new-note' "$TWO_SUM_PAGE"
+          grep -q 'kb-edit-link' "$TWO_SUM_PAGE"
+          ! grep -q '0 个目录 · 0 篇笔记' .build/quartz/public/index.html
 
       - name: Render 2048px visual checkpoint
         run: |
-          TWO_SUM_PAGE="$(find "$GITHUB_WORKSPACE/.build/quartz/public/leetcode/hash-table" -maxdepth 1 -type f -name 'two-sum*.html' -print -quit)"
-          test -n "$TWO_SUM_PAGE"
-          RELATIVE_PAGE="${TWO_SUM_PAGE#$GITHUB_WORKSPACE/.build/quartz/public/}"
-          cd "$GITHUB_WORKSPACE/.build/quartz/public"
-          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/quartz-http.log 2>&1 &
+          mkdir -p .build/preview/knowledge
+          cp index.html .build/preview/
+          cp -R assets .build/preview/
+          cp -R .build/quartz/public/. .build/preview/knowledge/
+          TWO_SUM_PAGE="$(find .build/quartz/public/leetcode/hash-table -maxdepth 1 -type f -name 'two-sum*.html' -print -quit)"
+          RELATIVE_PAGE="${TWO_SUM_PAGE#.build/quartz/public/}"
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory .build/preview >/tmp/quartz-http.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
           for i in $(seq 1 20); do
-            curl -fsS "http://127.0.0.1:4173/$RELATIVE_PAGE" >/dev/null && break
+            curl -fsS "http://127.0.0.1:4173/knowledge/" >/dev/null && break
             sleep 0.25
           done
           CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
           test -n "$CHROME"
-          "$CHROME" \
-            --headless \
-            --no-sandbox \
-            --disable-gpu \
-            --hide-scrollbars \
-            --window-size=2048,1152 \
-            --screenshot="$GITHUB_WORKSPACE/.build/two-sum-visual.png" \
-            "http://127.0.0.1:4173/$RELATIVE_PAGE"
-          test -s "$GITHUB_WORKSPACE/.build/two-sum-visual.png"
+          "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=3000 --window-size=2048,1152 --screenshot="$GITHUB_WORKSPACE/.build/two-sum-visual.png" "http://127.0.0.1:4173/knowledge/$RELATIVE_PAGE"
+          "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=3000 --window-size=1440,1000 --screenshot="$GITHUB_WORKSPACE/.build/knowledge-desktop.png" "http://127.0.0.1:4173/knowledge/"
+          "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=3000 --window-size=768,1024 --screenshot="$GITHUB_WORKSPACE/.build/knowledge-tablet.png" "http://127.0.0.1:4173/knowledge/"
+          "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=3000 --window-size=390,844 --screenshot="$GITHUB_WORKSPACE/.build/knowledge-mobile.png" "http://127.0.0.1:4173/knowledge/"
+          test -s .build/two-sum-visual.png
+          test -s .build/knowledge-mobile.png
 
       - name: Upload visual checkpoint
         uses: actions/upload-artifact@v4
         with:
-          name: two-sum-visual
-          path: .build/two-sum-visual.png
+          name: knowledge-ui-screenshots
+          path: |
+            .build/two-sum-visual.png
+            .build/knowledge-*.png
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload reviewable site
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowledge-ui-preview
+          path: .build/preview
           if-no-files-found: error
           retention-days: 7

@@ -1,134 +1,64 @@
-# avengerdsf.github.io
+# Chenyinhong · 个人主页与知识库
 
-个人主页与技术知识库，使用原生 HTML / CSS / JavaScript 构建并通过 GitHub Pages 发布。
+主页使用原生 HTML / CSS / JavaScript；`/knowledge/` 使用 Quartz 5 渲染 Markdown。知识库沿用主页的头像、主题色、圆角与悬浮导航，保留全文搜索、文章目录、数学公式、代码高亮和算法演示。
 
-## 站点结构
+## 添加与编辑笔记
 
-```text
-.
-├── index.html                         # 个人主页 / 项目 / 力扣入口
-├── knowledge/
-│   ├── index.html                     # 正文直接展开的可搜索知识库
-│   └── articles/                      # 可独立访问的长文章
-├── assets/
-│   ├── css/
-│   │   ├── site.css                   # 基础设计系统
-│   │   └── round2.css                 # 双悬浮导航与第二轮知识库布局
-│   └── js/
-│       ├── site.js                    # 主题、导航、动效等公共交互
-│       ├── knowledge-data.js          # 知识正文与公开源数据
-│       └── knowledge.js               # 搜索、筛选、正文渲染与锚点恢复
-├── scripts/validate-site.mjs          # 无依赖静态校验
-└── .github/workflows/
-    ├── deploy.yml                     # GitHub Pages 部署
-    └── validate.yml                   # PR / main 静态校验
+在知识库点击 **新增笔记**，会打开 GitHub 的新建文件页，并填好当前目录和 Markdown 模板。修改文件名、标题与正文，提交到 `main` 后自动构建发布。按钮不会直接写入仓库；保存需要 GitHub 登录及相应仓库权限。
+
+也可以直接在 `knowledge/` 的对应目录添加 `.md` 文件，例如 `knowledge/leetcode/my-note.md`：
+
+```markdown
+---
+title: 笔记标题
+tags: [算法]
+---
+
+## 核心思路
+
+写正文。
+
+## 代码
+
+这里可以直接粘贴标准 Markdown 代码块。
 ```
 
-## 本地预览
+一个文件对应一个阅读页，标题由 `title` 生成，不必在正文重复写一级标题。文件夹构成左侧目录；首页目录卡片、笔记数量与“全部笔记”由 Markdown 自动生成，不需要修改 HTML、JavaScript 数据清单或首页链接。
 
-仓库不需要安装 npm 依赖。进入仓库根目录后启动一个静态 HTTP 服务：
+新增主题时，建立 `knowledge/主题目录/` 并放入笔记。需要中文目录名称时，在该目录添加 `index.md`，填写 `title` 即可。不设置目录首页也能自动列出该目录。已有文章可以点击 **编辑本文** 修改原始文件。
+
+`draft: true` 的笔记不发布；`unlisted: true` 只是不出现在目录中，**不代表私密或访问保护**。公开仓库中不要保存敏感内容。
+
+### 机器学习笔记
+
+`/knowledge/machine-learning/` 来自 `avengerdsf/machine-learning-notes`，部署时同步。这个目录中的新增与编辑按钮会指向源仓库，而不是本仓库的构建副本。源仓库的 `README.md` 在知识库中作为目录首页展示。
+
+机器学习源仓库提交后，由现有每小时同步任务更新，也可以手动运行本仓库的 **Deploy static content to Pages**。本仓库 `knowledge/` 的提交会直接触发部署。
+
+## 代码位置与验证
+
+```text
+index.html                               个人主页
+assets/css/site.css                      主页设计变量的唯一来源
+knowledge/                               本地 Markdown 笔记
+knowledge-quartz/quartz.config.yaml       Quartz 插件与布局
+knowledge-quartz/custom.scss              知识库响应式样式
+knowledge-quartz/plugins/site-ui/         导航、自动目录、新增/编辑入口、主题同步
+knowledge-quartz/plugins/algorithm-demo/  原有算法演示
+scripts/prepare-knowledge.mjs             复用主页设计变量并准备本地插件
+.github/workflows/validate.yml            单元测试、完整构建与多尺寸截图
+.github/workflows/deploy.yml              发布到 GitHub Pages
+```
+
+知识库的配色、圆角和阴影由构建脚本从主页 `site.css` 提取，不复制主页的全局布局规则。调整主页设计变量后，下一次构建会同步到知识库；两者的深浅色选择也会保持一致。
+
+Node.js 22 或更高版本可以运行无需安装依赖的 UI 回归测试：
 
 ```bash
-python3 -m http.server 8000
+node --test knowledge-quartz/plugins/site-ui/test/*.test.mjs scripts/test/prepare-knowledge.test.mjs
+node scripts/validate-site.mjs --source
 ```
 
-访问：
+完整 Quartz 构建以工作流为准：固定 Quartz 提交版本，合并本地笔记和机器学习源仓库，再安装插件、构建和校验。不要使用旧的 `scripts/build-knowledge.mjs` 重建现有知识库，它属于迁移前的生成器。
 
-```text
-http://localhost:8000/
-http://localhost:8000/knowledge/
-```
-
-不要直接双击 `knowledge/index.html`，因为知识库使用 ES Module，浏览器在 `file://` 协议下可能阻止模块加载。
-
-## 静态校验
-
-需要 Node.js 20 或更高版本：
-
-```bash
-node scripts/validate-site.mjs
-```
-
-校验内容包括：
-
-- 关键站点文件是否存在；
-- 每个 HTML 页面是否包含非空 `<title>`；
-- 单个 HTML 文件是否存在重复 `id`；
-- HTML 中的本地 `href` 是否能解析到真实文件或目录首页。
-
-Pull Request 会自动运行同一校验。
-
-## 知识库数据结构
-
-知识库正文默认直接显示在 `/knowledge/`，不需要先进入卡片再打开第二层页面。主要内容维护在 `assets/js/knowledge-data.js`。
-
-### 新增直接显示的笔记
-
-```js
-{
-  id: "example-note",
-  title: "Example Note",
-  description: "这篇笔记解决的问题。",
-  category: "Linux & Tooling",
-  tags: ["Linux", "Debug"],
-  source: "Site note",
-  kind: "note",
-  updated: "2026-08",
-  sections: [
-    {
-      title: "关键步骤",
-      paragraphs: ["说明文字。"],
-      bullets: ["第一点。", "第二点。"],
-      code: "example command"
-    }
-  ]
-}
-```
-
-`id` 同时作为知识库锚点，例如：
-
-```text
-/knowledge/#example-note
-```
-
-### 关联公开仓库
-
-如果一篇笔记有公开源仓库，可以在笔记中增加：
-
-```js
-source: "example-repo",
-sourceUrl: "https://github.com/avengerdsf/example"
-```
-
-需要单独展示公开仓库入口时使用：
-
-```js
-{
-  id: "example-repo",
-  title: "Example Repo · 源仓库",
-  description: "公开仓库说明。",
-  category: "Engineering Practice",
-  tags: ["Repository"],
-  source: "GitHub",
-  sourceUrl: "https://github.com/avengerdsf/example",
-  kind: "repository"
-}
-```
-
-公开站点只添加公开仓库，不写入私有仓库名称、链接、内部路径或敏感环境信息。
-
-### 独立长文章
-
-`knowledge/articles/` 保留给需要独立 URL、较长篇幅或更适合连续阅读的文章。它们是补充入口，不是知识库阅读的必经层级。
-
-## 当前知识分类
-
-- LeetCode Notes
-- Machine Learning
-- Robotics & Reinforcement Learning
-- Linux & Tooling
-- Engineering Practice
-
-力扣笔记当前覆盖二分、滑动窗口、DFS / BFS、并查集、拓扑排序和动态规划，并直接在知识库正文中展开。
-
-当前版本继续保持零构建依赖，不引入 Jekyll、Astro、Vite 或其他站点框架。
+`python3 -m http.server 8000` 在源码根目录只适合预览原生主页，不能直接渲染 Markdown 知识库。验证工作流会上传 `knowledge-ui-preview` 构建产物，解压后在其根目录启动同样的 HTTP 服务，即可连同主页一起预览 `/knowledge/`。截图产物包含知识库首页及文章的桌面、平板和手机视图。
