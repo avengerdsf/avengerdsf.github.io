@@ -200,6 +200,7 @@ button.desktop-explorer { display: none; }
   background: var(--surface);
 }
 .center > article {
+  display: flow-root;
   min-width: 0;
   margin: 0;
   padding: 0 var(--kb-reading-padding) var(--kb-reading-padding);
