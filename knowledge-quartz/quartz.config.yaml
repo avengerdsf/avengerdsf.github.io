@@ -105,11 +105,10 @@ plugins:
     order: 80
   - source: "@quartz-community/quartz-fonts"
     enabled: true
+  # The optional Obsidian theme overwrites shared fonts and adds width:100%!important
+  # to the page alongside its gutters. Keep Quartz base styles and our shared skin.
   - source: "@quartz-themes/core"
-    enabled: true
-    options:
-      theme: default
-      mode: both
+    enabled: false
   - source: "@quartz-community/remove-draft"
     enabled: true
   - source: "@quartz-community/unlisted-pages"
@@ -148,10 +147,22 @@ plugins:
       position: beforeBody
       priority: 10
   - source: "@quartz-community/page-title"
+    enabled: false
+  - source: "./local-plugins/site-ui"
     enabled: true
     layout:
       position: left
       priority: 10
+  - source: "./local-plugins/knowledge-actions"
+    enabled: true
+    layout:
+      position: header
+      priority: 30
+  - source: "./local-plugins/knowledge-overview"
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 20
   - source: "@quartz-community/darkmode"
     enabled: true
     layout:
