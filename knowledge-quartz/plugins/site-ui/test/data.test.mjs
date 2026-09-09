@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { notebookData, sourceFor, newNoteUrl, noteHref } from '../src/data.mjs';
 
-const file = (slug, title, extra = {}) => ({ slug, relativePath: `${slug}.md`, frontmatter: { title }, ...extra });
+const file = (slug, title, extra = {}) => ({ slug, filePath: `content/${slug}.md`, relativePath: `${slug}.md`, frontmatter: { title }, ...extra });
 test('new Markdown notes and notebooks appear without a maintained card registry', () => {
   const files = [file('index', '知识库'), file('leetcode/index', '力扣算法笔记'), file('leetcode/two-sum', '两数之和'), file('systems/cache', '缓存')];
   const data = notebookData(files);
@@ -10,7 +10,7 @@ test('new Markdown notes and notebooks appear without a maintained card registry
   assert.deepEqual(data.groups.map(g => [g.title, g.notes.length]), [['力扣算法笔记', 1], ['systems', 1]]);
 });
 test('drafts, unlisted files, folder index pages and non-Markdown files are not notes', () => {
-  const data = notebookData([file('index', '知识库'), file('topic/index', '目录'), file('topic/private', '草稿', { frontmatter: { draft: true } }), file('topic/hidden', '隐藏', { frontmatter: { unlisted: true } }), file('topic/img', '图片', { relativePath: 'topic/img.png' }), file('topic/published', '正文')]);
+  const data = notebookData([file('index', '知识库'), file('topic/index', '目录'), file('topic/private', '草稿', { frontmatter: { draft: true } }), file('topic/hidden', '隐藏', { frontmatter: { unlisted: true } }), file('topic/img', '图片', { filePath: 'content/topic/img.png', relativePath: 'topic/img.png' }), file('topic/published', '正文')]);
   assert.deepEqual(data.notes.map(n => n.slug), ['topic/published']);
 });
 test('a top-level Markdown note is available without inventing a subject category', () => {

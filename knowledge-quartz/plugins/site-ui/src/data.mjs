@@ -3,7 +3,9 @@ export const NOTE_TEMPLATE = '---\ntitle: 新笔记\ntags: []\n---\n\n## 核心�
 const SITE = 'avengerdsf/avengerdsf.github.io';
 const LEARNING = 'avengerdsf/machine-learning-notes';
 const encodePath = (value) => value.split('/').map(encodeURIComponent).join('/');
-const isHidden = (file) => ['draft', 'unlisted'].some((key) => [true, 'true'].includes(file.frontmatter?.[key]));
+const isHidden = (file) => ['draft', 'unlisted'].some((key) => [file[key], file.frontmatter?.[key]].some(value => value === true || value === 'true'));
+// Virtual pages also have relativePath; only parsed source files have filePath.
+const isAuthored = (file) => typeof file.filePath === 'string' && /\.md$/i.test(file.filePath);
 const titleOf = (file) => String(file.frontmatter?.title || file.slug.split('/').at(-1));
 
 export function noteHref(slug) {
@@ -12,7 +14,7 @@ export function noteHref(slug) {
 }
 
 export function notebookData(files = []) {
-  const visible = files.filter((file) => file.slug && !isHidden(file) && /\.md$/i.test(file.relativePath || file.filePath || ''));
+  const visible = files.filter((file) => file.slug && isAuthored(file) && !isHidden(file));
   const titles = new Map(visible.filter((file) => /\/index$/.test(file.slug)).map((file) => [file.slug.slice(0, -6), titleOf(file)]));
   const notes = visible.filter((file) => !/(^|\/)index$/.test(file.slug)).map((file) => ({
     slug: file.slug,
@@ -30,6 +32,7 @@ export function notebookData(files = []) {
 }
 
 export function sourceFor(file = {}) {
+  if (!isAuthored(file)) return null;
   // Slugs are normalized URLs, not source filenames. Never reconstruct edit paths from them.
   const relative = String(file.relativePath || '').replaceAll('\\', '/');
   if (!relative || !/\.md$/i.test(relative) || relative.startsWith('/') || relative.split('/').some(part => part === '..')) return null;
@@ -40,10 +43,21 @@ export function sourceFor(file = {}) {
   return {repository, path, editUrl: `https://github.com/${repository}/edit/main/${encodePath(path)}`};
 }
 
-export function newNoteUrl(file = {}) {
-  const source = sourceFor(file);
+export function newNoteUrl(file = {}, allFiles = []) {
+  let source = sourceFor(file);
+  let folder = source ? source.path.split('/').slice(0, -1).join('/') : 'knowledge';
+  // Resolve generated folder pages from a real descendant, preserving spaces and case.
+  if (!source && typeof file.slug === 'string' && file.slug.endsWith('/index')) {
+    const prefix = file.slug.slice(0, -5);
+    const child = allFiles.find(item => item.slug?.startsWith(prefix) && sourceFor(item));
+    if (child) {
+      source = sourceFor(child);
+      const depth = prefix.split('/').length - 1;
+      const relative = child.relativePath.replaceAll('\\', '/').split('/').slice(0, depth).join('/');
+      folder = source.repository === LEARNING ? relative.replace(/^machine-learning\/?/, '') : `knowledge/${relative}`;
+    }
+  }
   const repository = source?.repository || SITE;
-  const folder = source ? source.path.split('/').slice(0, -1).join('/') : 'knowledge';
   const params = new URLSearchParams({filename: `${folder ? `${folder}/` : ''}新笔记.md`, value: NOTE_TEMPLATE});
   return `https://github.com/${repository}/new/main?${params}`;
 }

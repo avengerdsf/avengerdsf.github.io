@@ -15,12 +15,12 @@ export function KnowledgeBrand() {
 }
 
 export function KnowledgeActions() {
-  return ({fileData}) => {
+  return ({fileData, allFiles}) => {
     const source = sourceFor(fileData);
     return h('nav', {class: 'kb-actions', 'aria-label': '知识库操作'},
       h('a', {class: 'kb-home-link', href: '/', 'data-router-ignore': true}, '主页'),
       source && fileData.slug !== 'index' && h('a', {...external, class: 'kb-edit-link', href: source.editUrl, title: '在 GitHub 编辑这篇笔记的原始 Markdown'}, '编辑本文', arrow()),
-      h('a', {...external, class: 'kb-new-note', href: newNoteUrl(fileData), title: '在 GitHub 新建 Markdown 笔记；提交后自动发布'}, h('span', {'aria-hidden': 'true'}, '+'), '新增笔记'),
+      h('a', {...external, class: 'kb-new-note', href: newNoteUrl(fileData, allFiles), title: '在 GitHub 新建 Markdown 笔记；提交后自动发布'}, h('span', {'aria-hidden': 'true'}, '+'), '新增笔记'),
     );
   };
 }

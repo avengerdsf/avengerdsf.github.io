@@ -11,6 +11,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout site
         uses: actions/checkout@v5
@@ -122,6 +123,21 @@ jobs:
           test -s .build/two-sum-visual.png
           test -s .build/knowledge-mobile.png
 
+      - name: Check responsive layout and interactions
+        run: |
+          python3 -m venv .build/browser-env
+          .build/browser-env/bin/pip install --disable-pip-version-check playwright==1.57.0
+          .build/browser-env/bin/python scripts/test-knowledge-browser.py .build/preview ui-checkpoints
+
+      - name: Upload browser evidence
+        if: ${{ !cancelled() && hashFiles('ui-checkpoints/*.png') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowledge-ui-checks
+          path: ui-checkpoints
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Upload visual checkpoint
         if: ${{ !cancelled() && hashFiles('.build/quartz/public/index.html') != '' }}
         uses: actions/upload-artifact@v4
@@ -130,6 +146,7 @@ jobs:
           path: |
             .build/two-sum-visual.png
             .build/knowledge-*.png
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
 
