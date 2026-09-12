@@ -111,7 +111,7 @@ button.desktop-explorer { display: none; }
   padding: 6px 8px;
   border-radius: 8px;
   color: var(--muted);
-  font-size: .88rem;
+  font-size: 1rem;
   font-weight: 550;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -143,7 +143,7 @@ button.desktop-explorer { display: none; }
   background: color-mix(in srgb, var(--surface-solid) 78%, transparent);
   box-shadow: var(--shadow-sm);
 }
-.page-header .search { flex: 1 1 240px; width: auto; min-width: 0; max-width: 640px; margin: 0 auto 0 0; }
+.page-header .search { flex: 1 1 180px; width: auto; min-width: 0; max-width: 640px; margin: 0 auto 0 0; }
 .page-header .search > .search-button {
   display: flex;
   align-items: center;
@@ -163,22 +163,23 @@ button.desktop-explorer { display: none; }
 .darkmode { flex: 0 0 38px; width: 38px; height: 38px; margin: 0; border-radius: 12px; }
 .darkmode:hover { background: var(--surface-muted); }
 .darkmode button { width: 38px; height: 38px; border: 0; background: transparent; color: var(--text); }
-.kb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; flex: 0 0 auto; max-width: 100%; }
+.kb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; flex: 0 1 auto; max-width: 100%; }
 .kb-actions a {
   display: inline-flex;
   justify-content: center;
   align-items: center;
   gap: 5px;
-  min-height: 38px;
+  min-height: 40px;
   padding: 0 11px;
   border-radius: 12px;
   color: var(--muted);
-  font-size: .86rem;
+  font-size: 1rem;
   font-weight: 650;
   white-space: nowrap;
 }
 .kb-actions a:hover { background: var(--surface-muted); color: var(--text-strong); }
 .kb-actions .kb-home-link { color: var(--accent-strong); background: var(--accent-soft); }
+.kb-actions .kb-up-link { background: var(--surface-muted); color: var(--text); }
 .kb-actions .kb-new-note { color: var(--surface-solid); background: var(--accent-strong); }
 .kb-actions .kb-new-note:hover { background: var(--accent); color: var(--surface-solid); }
 .kb-new-note > span { font-size: 1.15rem; line-height: 1; }
@@ -213,7 +214,7 @@ button.desktop-explorer { display: none; }
   overflow-wrap: anywhere;
 }
 .center > hr, .center > .page-footer:empty { display: none; }
-.article-title { overflow-wrap: anywhere; margin: 0 0 10px; color: var(--text-strong); font-family: inherit; font-size: clamp(1.9rem, 2.5vw, 2.8rem); line-height: 1.2; letter-spacing: -.04em; }
+.article-title { overflow-wrap: anywhere; margin: 0 0 24px; color: var(--text-strong); font-family: inherit; font-size: clamp(1.9rem, 2.5vw, 2.8rem); line-height: 1.2; letter-spacing: -.04em; }
 article h2, article h3, article h4 { color: var(--text-strong); font-family: inherit; scroll-margin-top: 24px; }
 article h2 { margin: 2rem 0 .9rem; font-size: 1.3rem; }
 article p, article li, article blockquote { color: var(--text); }
@@ -229,13 +230,13 @@ article blockquote { margin-inline: 0; padding: 8px 16px; border-left: 3px solid
 .algorithm-code > summary { padding: 12px 0; color: var(--text-strong); font-weight: 650; cursor: pointer; }
 .algorithm-code pre { margin: 0 0 16px; }
 
-/* Landing shows directories; each directory shows a single, unboxed article list. */
+/* Directories and individual notes are separate levels, with no metadata microcopy. */
 .page-header:has(.kb-overview) > .popover-hint { border-bottom: 1px solid var(--line); border-radius: var(--radius-lg); padding-bottom: var(--kb-reading-padding); }
 .center:has(.kb-overview) > article,
 .center:has(.kb-overview) > .popover-hint { display: none; }
 .page-header:has(.kb-directory-list) > .popover-hint { padding: 12px 0; border: 0; background: transparent; }
 .kb-notebooks { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; margin: 0; padding: 0; }
-.kb-directory-list { max-width: 920px; margin-top: 20px; }
+.kb-directory-list { max-width: 920px; }
 .kb-directory-list > li { flex: 1 1 300px; min-width: 0; margin: 0; }
 .kb-overview .kb-directory-link {
   display: flex;
@@ -257,6 +258,7 @@ article blockquote { margin-inline: 0; padding: 8px 16px; border-left: 3px solid
 .kb-directory-label strong { color: var(--text-strong); font-size: 1.15rem; overflow-wrap: anywhere; }
 .kb-directory-arrow { color: var(--muted); flex: 0 0 auto; }
 .kb-note-list { display: block; list-style: none; margin: 0; padding: 0; }
+.kb-directory-list + .kb-note-list { margin-top: 24px; }
 .kb-note-list > li { min-width: 0; margin: 0; }
 .kb-note-list > li + li { border-top: 1px solid var(--line); }
 .kb-overview .kb-note-link {
@@ -278,8 +280,8 @@ article blockquote { margin-inline: 0; padding: 8px 16px; border-left: 3px solid
 .page > #quartz-body .sidebar.right { top: 0; height: 100dvh; padding: 106px 0 28px; background: transparent; }
 .page > #quartz-body .sidebar.right > .toc { padding-left: 15px; border-left: 1px solid var(--line); }
 .sidebar.right:not(:has(.toc li a)) { display: none !important; }
-.sidebar.right .toc-header { margin-top: 0; color: var(--text-strong); font-size: .9rem; }
-.sidebar.right a { color: var(--muted); font-size: .85rem; line-height: 1.6; }
+.sidebar.right .toc-header { margin-top: 0; color: var(--text-strong); font-size: 1rem; }
+.sidebar.right a { color: var(--muted); font-size: 1rem; line-height: 1.6; }
 .sidebar.right a.in-view, .sidebar.right a:hover { color: var(--accent-strong); }
 footer, .page-footer:empty { display: none !important; }
 
@@ -303,14 +305,13 @@ footer, .page-footer:empty { display: none !important; }
   .explorer .explorer-content { background: var(--surface-solid); border-radius: var(--radius-md); }
   button.mobile-explorer { min-height: 44px; color: var(--text); }
   .page > #quartz-body > .center { padding: 0 0 28px; }
-  .page-header > header { flex-wrap: wrap; margin-bottom: 16px; gap: 6px; }
+  .page-header > header { margin-bottom: 16px; gap: 6px; }
   .page-header .search { flex: 1 1 150px; max-width: none; }
   .kb-actions { flex: 1 1 100%; justify-content: flex-end; border-top: 1px solid var(--line); padding-top: 5px; }
   .kb-actions .kb-home-link { margin-right: auto; }
-  .kb-actions a { min-height: 40px; }
   .page > #quartz-body .sidebar.right { display: none !important; }
   .article-title { font-size: clamp(1.7rem, 6.5vw, 2.3rem); }
-  .kb-overview .kb-directory-link { padding: 20px; min-height: 96px; }
+  .kb-overview .kb-directory-link { padding: 20px; min-height: 88px; }
 }
 @media (max-width: 380px) {
   :root { --kb-reading-padding: 16px; }
