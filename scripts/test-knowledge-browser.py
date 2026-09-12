@@ -68,18 +68,34 @@ try:
                 if scope is not None:
                     expect(page.locator('.kb-overview')).to_have_count(1)
                     expect(page.locator('.kb-overview')).to_have_attribute('data-scope', scope)
-                    expect(page.locator('.kb-note-list')).to_be_visible()
                     expect(page.locator('.center article:visible, .center .page-listing:visible')).to_have_count(0)
                     expect(page.locator('.kb-all-notes, .kb-browse, .kb-note-preview')).to_have_count(0)
-                    links = page.locator('.kb-note-list a').evaluate_all('(links) => links.map(a => a.getAttribute("href"))')
-                    assert links and len(links) == len(set(links))
-                    assert all('/404' not in link and '/tags/' not in link for link in links)
-                    for link in links:
-                        assert not link.endswith('/'), f'A note list must link directly to articles, not directories: {link}'
-                        if scope:
+                    if not scope:
+                        # The landing page is an entry point, not an all-notes dashboard.
+                        assert page.locator('.kb-note-list').count() == 0, 'Root must show directories, not every note'
+                        expect(page.locator('.kb-directory-list')).to_be_visible()
+                        links = page.locator('.kb-directory-link').evaluate_all('(links) => links.map(a => a.getAttribute("href"))')
+                        assert links and len(links) == len(set(links))
+                        for link in links:
+                            assert link.startswith('/knowledge/') and link.endswith('/')
+                            assert len(unquote(urlsplit(link).path).strip('/').split('/')) == 2, link
+                            assert (root / unquote(urlsplit(link).path).lstrip('/') / 'index.html').is_file(), link
+                    else:
+                        expect(page.locator('.kb-note-list')).to_be_visible()
+                        expect(page.locator('.kb-directory-list')).to_have_count(0)
+                        links = page.locator('.kb-note-list a').evaluate_all('(links) => links.map(a => a.getAttribute("href"))')
+                        assert links and len(links) == len(set(links))
+                        for link in links:
+                            assert not link.endswith('/'), f'A directory must link directly to articles: {link}'
                             assert link.startswith(f'/knowledge/{scope}/'), f'Note leaked from another directory: {link}'
-                        target = root / unquote(urlsplit(link).path).lstrip('/')
-                        assert target.is_file() or Path(str(target)+'.html').is_file(), link
+                            target = root / unquote(urlsplit(link).path).lstrip('/')
+                            assert target.is_file() or Path(str(target)+'.html').is_file(), link
+                        rows = page.locator('.kb-note-link').evaluate_all('''links => links.map(a => ({
+                            top: a.getBoundingClientRect().top, bottom: a.getBoundingClientRect().bottom,
+                            radius: getComputedStyle(a).borderRadius
+                        }))''')
+                        assert all(row['radius'] == '0px' for row in rows), 'Notes must be plain rows, not separate cards'
+                        assert all(rows[i]['top'] >= rows[i-1]['bottom'] - 1 for i in range(1, len(rows))), 'Notes must remain a single-column list'
                 else:
                     expect(page.locator('two-sum-demo .two-sum-demo__pointer').first).to_be_attached()
                     expect(page.locator('.algorithm-code')).to_have_count(1)
@@ -95,8 +111,8 @@ try:
         expect(page.locator('.search-layout')).to_contain_text('两数之和')
         page.keyboard.press('Escape')
         expect(page.locator('.search-container')).not_to_be_visible()
-        # One directory selection must expose the nested article, without opening another directory.
-        page.locator('.explorer a').filter(has_text='力扣算法笔记').first.click()
+        # Enter through the actual landing-page directory, then directly open an article.
+        page.locator('.kb-directory-link[href="/knowledge/leetcode/"]').click()
         expect(page.locator('.kb-overview')).to_have_attribute('data-scope', 'leetcode')
         first = page.locator('.kb-note-list a[href="/knowledge/leetcode/hash-table/two-sum"]')
         expect(first).to_be_visible()
@@ -119,14 +135,13 @@ try:
         page.screenshot(path=str(output/'mobile-navigation.png'))
         page.locator('.mobile-explorer').click()
         expect(page.locator('.explorer')).to_have_attribute('aria-expanded', 'false')
-        # Explicit home navigation must also work at the previously hidden tablet width.
         for width in [390, 1024]:
             page.set_viewport_size({'width':width, 'height':844})
             page.goto(origin+'/knowledge/leetcode/', wait_until='networkidle')
             page.get_by_role('link', name='← 返回主页', exact=True).click()
             page.wait_for_url(origin+'/')
-        (output/'report.json').write_text(json.dumps({'responsive':results, 'scopedListings':True, 'search':True, 'navigation':True, 'themePersistence':True, 'mobileMenu':True, 'homeNavigation':True}, indent=2))
+        (output/'report.json').write_text(json.dumps({'responsive':results, 'directoryLanding':True, 'scopedListings':True, 'search':True, 'navigation':True, 'themePersistence':True, 'mobileMenu':True, 'homeNavigation':True}, indent=2))
         browser.close()
 finally:
     server.shutdown()
-print('Browser checks passed: 30 responsive cases, scoped article lists, search, direct navigation, theme persistence, mobile menu and return home.')
+print('Browser checks passed: directory landing, plain article lists, 30 responsive cases, search, navigation, theme and return home.')
