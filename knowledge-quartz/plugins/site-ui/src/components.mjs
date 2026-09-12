@@ -25,7 +25,8 @@ export function KnowledgeActions() {
     const isDirectory = fileData.slug === 'index' || fileData.slug?.endsWith('/index');
     return h('nav', {class: 'kb-actions', 'aria-label': '知识库操作'},
       h('a', {class: 'kb-home-link', href: '/', 'data-router-ignore': true}, '← 返回主页'),
-      parent && h('a', {class: 'kb-up-link internal', href: parent, title: '返回上一级目录'}, '↑ 上一级'),
+      parent && h('a', {class: `internal kb-root-link${parent === '/knowledge/' ? ' kb-up-link' : ''}`, href: '/knowledge/'}, '知识库'),
+      parent && parent !== '/knowledge/' && h('a', {class: 'kb-up-link internal', href: parent, title: '返回上一级目录'}, '↑ 上一级'),
       source && fileData.slug !== 'index' && h('a', {...external, class: 'kb-edit-link', href: source.editUrl}, isDirectory ? '编辑目录' : '编辑本文', arrow()),
       h('a', {...external, class: 'kb-new-note', href: newNoteUrl(fileData, allFiles), title: '在当前目录新建 Markdown 笔记'}, h('span', {'aria-hidden': 'true'}, '+'), '新增笔记'),
     );
