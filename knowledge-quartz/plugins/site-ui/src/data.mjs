@@ -13,10 +13,10 @@ export function noteHref(slug) {
   return `/knowledge/${encodePath(path)}`;
 }
 
-export function notebookData(files = []) {
+export function notebookData(files = [], scope = "") {
   const visible = files.filter((file) => file.slug && isAuthored(file) && !isHidden(file));
   const titles = new Map(visible.filter((file) => /\/index$/.test(file.slug)).map((file) => [file.slug.slice(0, -6), titleOf(file)]));
-  const notes = visible.filter((file) => !/(^|\/)index$/.test(file.slug)).map((file) => ({
+  const notes = visible.filter((file) => !/(^|\/)index$/.test(file.slug) && (!scope || file.slug.startsWith(`${scope}/`))).map((file) => ({
     slug: file.slug,
     title: titleOf(file),
     group: file.slug.includes('/') ? file.slug.split('/')[0] : '',
