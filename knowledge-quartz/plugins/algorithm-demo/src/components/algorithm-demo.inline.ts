@@ -180,26 +180,6 @@ function mountTwoSumDemo(root: HTMLElement) {
   reset()
 }
 
-function mountArticleBackLink() {
-  const titleBlock = document.querySelector<HTMLElement>(".page-header > .popover-hint")
-  if (!titleBlock || titleBlock.querySelector(".article-back-link")) return
-
-  const breadcrumbs = titleBlock.querySelector<HTMLElement>(".breadcrumb-container, .breadcrumbs")
-  if (!breadcrumbs) return
-
-  const links = Array.from(breadcrumbs.querySelectorAll<HTMLAnchorElement>("a[href]"))
-  const parent = links.at(-1)
-  const parentLabel = parent?.textContent?.trim()
-  if (!parent || !parentLabel) return
-
-  const back = document.createElement("a")
-  back.className = "article-back-link"
-  back.href = parent.href
-  back.setAttribute("aria-label", `返回${parentLabel}`)
-  back.innerHTML = `<span aria-hidden="true">←</span><span>返回${parentLabel}</span>`
-  titleBlock.insertBefore(back, breadcrumbs)
-}
-
 function mountMarkdownCodeBlocks() {
   document.querySelectorAll<HTMLElement>("article h2, article h3").forEach((heading) => {
     if (heading.textContent?.trim() !== "代码") return
@@ -218,7 +198,6 @@ function mountMarkdownCodeBlocks() {
 }
 
 function mountAll() {
-  mountArticleBackLink()
   mountMarkdownCodeBlocks()
   document.querySelectorAll<HTMLElement>("two-sum-demo").forEach(mountTwoSumDemo)
 }

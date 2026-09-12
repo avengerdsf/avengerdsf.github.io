@@ -168,17 +168,6 @@ plugins:
     layout:
       position: header
       priority: 20
-  - source: "@quartz-community/breadcrumbs"
-    enabled: true
-    options:
-      rootName: "知识库"
-      spacerSymbol: "/"
-      resolveFrontmatterTitle: true
-      showCurrentPage: false
-    layout:
-      position: beforeBody
-      priority: 5
-      condition: not-index
   - source: "@quartz-community/spacer"
     enabled: true
     options: {}
