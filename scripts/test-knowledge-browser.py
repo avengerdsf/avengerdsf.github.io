@@ -69,6 +69,7 @@ try:
                     expect(page.locator('.kb-overview')).to_have_count(1)
                     expect(page.locator('.kb-overview')).to_have_attribute('data-scope', scope)
                     expect(page.locator('.kb-note-list')).to_be_visible()
+                    expect(page.locator('.center article:visible, .center .page-listing:visible')).to_have_count(0)
                     expect(page.locator('.kb-all-notes, .kb-browse, .kb-note-preview')).to_have_count(0)
                     links = page.locator('.kb-note-list a').evaluate_all('(links) => links.map(a => a.getAttribute("href"))')
                     assert links and len(links) == len(set(links))

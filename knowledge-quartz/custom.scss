@@ -235,7 +235,8 @@ article blockquote { margin-inline: 0; padding: 8px 16px; border-left: 3px solid
 
 /* One visible article list per directory, never a directory card plus a second list. */
 .page-header:has(.kb-overview) > .popover-hint { border-bottom: 1px solid var(--line); border-radius: var(--radius-lg); padding-bottom: var(--kb-reading-padding); }
-.center:has(.kb-overview) > article { display: none; }
+.center:has(.kb-overview) > article,
+.center:has(.kb-overview) > .popover-hint { display: none; }
 .kb-overview-meta { margin: 0 0 22px; color: var(--muted); font-size: .92rem; }
 .kb-notebooks { display: flex; flex-wrap: wrap; gap: 12px; }
 .kb-note-list { list-style: none; margin: 0; padding: 0; }
@@ -304,5 +305,5 @@ footer, .page-footer:empty { display: none !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .kb-note-link { transition: none; }
+  .kb-overview .kb-note-link { transition: none; }
 }
