@@ -60,12 +60,13 @@ async function validateQuartzIntegration() {
   const stylesPath = "knowledge-quartz/custom.scss";
   const inlinePath = "knowledge-quartz/plugins/algorithm-demo/src/components/algorithm-demo.inline.ts";
   const demoStylesPath = "knowledge-quartz/plugins/algorithm-demo/src/components/styles.ts";
+  const componentsPath = "knowledge-quartz/plugins/site-ui/src/components.mjs";
   await requireFiles([
     configPath, stylesPath, inlinePath, demoStylesPath,
     "knowledge-quartz/plugins/algorithm-demo/package.json",
     "knowledge-quartz/plugins/algorithm-demo/src/components/AlgorithmDemoAssets.tsx",
     "knowledge-quartz/plugins/site-ui/package.json",
-    "knowledge-quartz/plugins/site-ui/src/components.mjs",
+    componentsPath,
     "knowledge-quartz/plugins/site-ui/src/data.mjs",
     "knowledge-quartz/plugins/site-ui/src/theme.mjs",
     "scripts/prepare-knowledge.mjs",
@@ -73,23 +74,28 @@ async function validateQuartzIntegration() {
   if (await exists(configPath)) {
     const config = await read(configPath);
     requireText(config, ["locale: zh-CN", "pageTitle: Chenyinhong / 知识库", "baseUrl: avengerdsf.github.io/knowledge", "@quartz-community/note-properties", "@quartz-community/explorer", "@quartz-community/search", "./local-plugins/algorithm-demo", "./local-plugins/site-ui", "header: Inter", "body: Inter"], "Quartz config");
-    forbidText(config, ["@quartz-community/content-meta", "@quartz-community/graph", "@quartz-community/backlinks", "@quartz-community/footer"], "Quartz layout");
+    forbidText(config, ["@quartz-community/content-meta", "@quartz-community/graph", "@quartz-community/backlinks", "@quartz-community/footer", "@quartz-community/breadcrumbs"], "Quartz layout");
     const pluginBlock = (name) => config.match(new RegExp('- source: "@quartz-community/' + name + '"[\\s\\S]*?(?=\\n  - source:|\\nlayout:)'))?.[0] ?? "";
     requireText(pluginBlock("note-properties"), ["hidePropertiesView: true"], "Note properties");
     requireText(pluginBlock("search"), ["position: header"], "Search position");
     requireText(pluginBlock("table-of-contents"), ["position: right"], "TOC position");
-    requireText(pluginBlock("breadcrumbs"), ['rootName: "知识库"', 'spacerSymbol: "/"', "showCurrentPage: false"], "Breadcrumbs");
   }
   if (await exists(stylesPath)) {
     const custom = await read(stylesPath);
     // Check the maintained UI contract, not one historical collection of pixel values.
-    requireText(custom, ['@use "./home-tokens"', "--home-bg: var(--bg)", "--home-accent: var(--accent)", ".page-header > header", ".page-header > .popover-hint", "button.desktop-explorer", "max-width: none !important", ".sidebar.right:not(:has(.toc li a))", "body::before", ".article-back-link", ".kb-brand", ".kb-actions", ".kb-notebooks", "flex-wrap: wrap", "prefers-reduced-motion"], "Knowledge UI");
+    requireText(custom, ['@use "./home-tokens"', "--home-bg: var(--bg)", "--home-accent: var(--accent)", ".page-header > header", ".page-header > .popover-hint", "button.desktop-explorer", "max-width: none !important", ".sidebar.right:not(:has(.toc li a))", "body::before", ".kb-brand", ".kb-actions", ".kb-notebooks", "flex-wrap: wrap", "prefers-reduced-motion"], "Knowledge UI");
     requireText(custom, [".page > #quartz-body .page-header {\n  display: block;"], "Toolbar/title stack");
+    forbidText(custom, [".article-back-link", ".breadcrumb-container", ".kb-overview-meta", ".kb-directory-count"], "Removed header styles");
+  }
+  if (await exists(componentsPath)) {
+    const components = await read(componentsPath);
+    requireText(components, ["kb-home-link", "kb-root-link", "href: '/knowledge/'"], "Toolbar navigation");
+    forbidText(components, ["kb-overview-meta", "kb-directory-count"], "Removed header metadata");
   }
   if (await exists(inlinePath)) {
     const inline = await read(inlinePath);
-    forbidText(inline, ["nums = [${nums.join", "指针从左向右扫描数组。"], "Algorithm demo");
-    requireText(inline, ["target = ${target}", "mountArticleBackLink", "article-back-link", "mountMarkdownCodeBlocks", "algorithm-code"], "Article behavior");
+    forbidText(inline, ["nums = [${nums.join", "指针从左向右扫描数组。", "mountArticleBackLink", "article-back-link", "breadcrumb-container"], "Algorithm demo");
+    requireText(inline, ["target = ${target}", "mountMarkdownCodeBlocks", "algorithm-code"], "Article behavior");
   }
   if (await exists(demoStylesPath)) requireText(await read(demoStylesPath), ["grid-template-columns: minmax(0, 1.65fr) 44px minmax(220px, 0.72fr)", "background: transparent", "min-height: 150px"], "Algorithm demo compact layout");
   for (const file of [".github/workflows/validate.yml", ".github/workflows/deploy.yml"]) {

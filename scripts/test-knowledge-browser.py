@@ -26,6 +26,12 @@ server = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Handler, direct
 Thread(target=server.serve_forever, daemon=True).start()
 origin = f'http://127.0.0.1:{server.server_port}'
 results = []
+
+def assert_clean_header(page):
+    # Elements must be absent, not hidden with another CSS override.
+    expect(page.locator('.article-back-link, .breadcrumb-container, .breadcrumbs, .kb-overview-meta, .kb-directory-count')).to_have_count(0)
+    expect(page.locator('.page-header > .popover-hint > :first-child')).to_have_class('article-title')
+
 try:
     with sync_playwright() as playwright:
         executable = next((shutil.which(name) for name in ['google-chrome', 'chromium', 'chromium-browser'] if shutil.which(name)), None)
@@ -48,6 +54,7 @@ try:
                 response = page.goto(origin + path, wait_until='networkidle')
                 assert response.ok, (path, response.status)
                 expect(page.locator('.explorer-content a').first).to_be_attached()
+                assert_clean_header(page)
                 overflow = page.evaluate('document.documentElement.scrollWidth - innerWidth')
                 assert overflow <= 1, f'{name} at {width}px overflows by {overflow}px'
                 assert page.locator('.kb-brand').count() == 1
@@ -57,6 +64,9 @@ try:
                 expect(home).to_have_attribute('href', '/')
                 box = home.bounding_box()
                 assert box and box['x'] >= 0 and box['x'] + box['width'] <= width + 1
+                if name != 'index':
+                    expect(page.locator('.kb-root-link')).to_be_visible()
+                    expect(page.locator('.kb-root-link')).to_have_attribute('href', '/knowledge/')
                 brand_height = page.locator('.kb-brand').bounding_box()['height']
                 assert brand_height <= 64, f'Brand must stay a compact single row: {brand_height}'
                 if width > 800:
@@ -103,7 +113,7 @@ try:
                 page.screenshot(path=str(output/f'{name}-{width}.png'), full_page=False)
                 if width == 1440:
                     (output/f'{name}-dom.html').write_text(page.content())
-                results.append({'page':name, 'width':width, 'overflow':overflow, 'homeVisible':True})
+                results.append({'page':name, 'width':width, 'overflow':overflow, 'homeVisible':True, 'cleanHeader':True})
         page.set_viewport_size({'width':1440, 'height':1000})
         page.goto(origin+'/knowledge/', wait_until='networkidle')
         page.locator('.search-button').click()
@@ -114,14 +124,19 @@ try:
         # Enter through the actual landing-page directory, then directly open an article.
         page.locator('.kb-directory-link[href="/knowledge/leetcode/"]').click()
         expect(page.locator('.kb-overview')).to_have_attribute('data-scope', 'leetcode')
+        assert_clean_header(page)
         first = page.locator('.kb-note-list a[href="/knowledge/leetcode/hash-table/two-sum"]')
         expect(first).to_be_visible()
         first.click()
         page.wait_for_url(origin+'/knowledge/leetcode/hash-table/two-sum')
-        expect(page.locator('.article-back-link')).to_be_attached()
+        assert_clean_header(page)
         page.locator('.darkmode').click()
         expect(page.locator('html')).to_have_attribute('saved-theme', 'dark')
         assert page.evaluate('localStorage.getItem("avengerdsf-site-theme")') == 'dark'
+        page.locator('.kb-root-link').click()
+        page.wait_for_url(origin+'/knowledge/')
+        expect(page.locator('.kb-directory-list')).to_be_visible()
+        assert_clean_header(page)
         page.get_by_role('link', name='← 返回主页', exact=True).click()
         page.wait_for_url(origin+'/')
         expect(page.locator('html')).to_have_attribute('data-theme', 'dark')
@@ -138,10 +153,13 @@ try:
         for width in [390, 1024]:
             page.set_viewport_size({'width':width, 'height':844})
             page.goto(origin+'/knowledge/leetcode/', wait_until='networkidle')
+            page.locator('.kb-root-link').click()
+            page.wait_for_url(origin+'/knowledge/')
+            assert_clean_header(page)
             page.get_by_role('link', name='← 返回主页', exact=True).click()
             page.wait_for_url(origin+'/')
-        (output/'report.json').write_text(json.dumps({'responsive':results, 'directoryLanding':True, 'scopedListings':True, 'search':True, 'navigation':True, 'themePersistence':True, 'mobileMenu':True, 'homeNavigation':True}, indent=2))
+        (output/'report.json').write_text(json.dumps({'responsive':results, 'cleanHeader':True, 'directoryLanding':True, 'scopedListings':True, 'search':True, 'navigation':True, 'themePersistence':True, 'mobileMenu':True, 'homeNavigation':True, 'knowledgeNavigation':True}, indent=2))
         browser.close()
 finally:
     server.shutdown()
-print('Browser checks passed: directory landing, plain article lists, 30 responsive cases, search, navigation, theme and return home.')
+print('Browser checks passed: clean titles, directory landing, plain article lists, 30 responsive cases, search, navigation, theme and return home.')
