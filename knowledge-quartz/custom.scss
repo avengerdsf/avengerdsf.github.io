@@ -212,7 +212,7 @@ button.desktop-explorer { display: none; }
   overflow-wrap: anywhere;
 }
 .center > hr, .center > .page-footer:empty { display: none; }
-.article-title { margin: 0 0 10px; color: var(--text-strong); font-family: inherit; font-size: clamp(1.9rem, 2.5vw, 2.8rem); line-height: 1.2; letter-spacing: -.04em; }
+.article-title { overflow-wrap: anywhere; margin: 0 0 10px; color: var(--text-strong); font-family: inherit; font-size: clamp(1.9rem, 2.5vw, 2.8rem); line-height: 1.2; letter-spacing: -.04em; }
 article h2, article h3, article h4 { color: var(--text-strong); font-family: inherit; scroll-margin-top: 24px; }
 article h2 { margin: 2rem 0 .9rem; font-size: 1.3rem; }
 article p, article li, article blockquote { color: var(--text); }
