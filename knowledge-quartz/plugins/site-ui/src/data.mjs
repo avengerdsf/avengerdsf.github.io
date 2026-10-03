@@ -1,7 +1,6 @@
 /** Pure metadata helpers shared by the Quartz components and regression tests. */
+import { sourceConfig } from './sources.mjs';
 export const NOTE_TEMPLATE = '---\ntitle: 新笔记\ntags: []\n---\n\n## 核心思路\n\n\n\n## 正文\n\n';
-const SITE = 'avengerdsf/avengerdsf.github.io';
-const LEARNING = 'avengerdsf/machine-learning-notes';
 const encodePath = (value) => value.split('/').map(encodeURIComponent).join('/');
 const isHidden = (file) => ['draft', 'unlisted'].some((key) => [file[key], file.frontmatter?.[key]].some(value => value === true || value === 'true'));
 // Virtual pages also have relativePath; only parsed source files have filePath.
@@ -31,33 +30,37 @@ export function notebookData(files = [], scope = "") {
   return {notes, groups: [...groups.values()].sort((a, b) => a.slug.localeCompare(b.slug, 'en'))};
 }
 
-export function sourceFor(file = {}) {
-  if (!isAuthored(file)) return null;
-  // Slugs are normalized URLs, not source filenames. Never reconstruct edit paths from them.
+function sourceLocation(file = {}) {
   const relative = String(file.relativePath || '').replaceAll('\\', '/');
-  if (!relative || !/\.md$/i.test(relative) || relative.startsWith('/') || relative.split('/').some(part => part === '..')) return null;
-  const synced = relative.startsWith('machine-learning/');
-  const repository = synced ? LEARNING : SITE;
-  let path = synced ? relative.slice('machine-learning/'.length) : `knowledge/${relative}`;
-  if (synced && path === 'index.md') path = 'README.md';
-  return {repository, path, editUrl: `https://github.com/${repository}/edit/main/${encodePath(path)}`};
+  if (!relative || !/\.md$/i.test(relative) || relative.includes(':') || relative.includes('\0') || relative.split('/').some(part => !part || part === '.' || part === '..')) return null;
+  const synced = sourceConfig.sources.find(source => relative.startsWith(`${source.target}/`));
+  const source = synced || sourceConfig.site;
+  return {repository: source.repository, ref: source.ref, path: synced ? relative.slice(synced.target.length + 1) : `${source.path}/${relative}`};
+}
+
+export function sourceFor(file = {}) {
+  if (!isAuthored(file) || [true, 'true'].includes(file.frontmatter?.knowledgeGeneratedIndex)) return null;
+  // Slugs are normalized URLs, not source filenames. Never reconstruct edit paths from them.
+  const source = sourceLocation(file);
+  return source && {...source, editUrl: `https://github.com/${source.repository}/edit/${encodeURIComponent(source.ref)}/${encodePath(source.path)}`};
 }
 
 export function newNoteUrl(file = {}, allFiles = []) {
-  let source = sourceFor(file);
-  let folder = source ? source.path.split('/').slice(0, -1).join('/') : 'knowledge';
+  let source = isAuthored(file) ? sourceLocation(file) : null;
+  let folder = source ? source.path.split('/').slice(0, -1).join('/') : sourceConfig.site.path;
   // Resolve generated folder pages from a real descendant, preserving spaces and case.
   if (!source && typeof file.slug === 'string' && file.slug.endsWith('/index')) {
     const prefix = file.slug.slice(0, -5);
     const child = allFiles.find(item => item.slug?.startsWith(prefix) && sourceFor(item));
     if (child) {
-      source = sourceFor(child);
+      source = sourceLocation(child);
       const depth = prefix.split('/').length - 1;
       const relative = child.relativePath.replaceAll('\\', '/').split('/').slice(0, depth).join('/');
-      folder = source.repository === LEARNING ? relative.replace(/^machine-learning\/?/, '') : `knowledge/${relative}`;
+      const synced = sourceConfig.sources.find(item => relative === item.target || relative.startsWith(`${item.target}/`));
+      folder = synced ? relative.slice(synced.target.length).replace(/^\//, '') : `${sourceConfig.site.path}/${relative}`;
     }
   }
-  const repository = source?.repository || SITE;
+  const repository = source?.repository || sourceConfig.site.repository;
   const params = new URLSearchParams({filename: `${folder ? `${folder}/` : ''}新笔记.md`, value: NOTE_TEMPLATE});
-  return `https://github.com/${repository}/new/main?${params}`;
+  return `https://github.com/${repository}/new/${encodeURIComponent(source?.ref || sourceConfig.site.ref)}?${params}`;
 }

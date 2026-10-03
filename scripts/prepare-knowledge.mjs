@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, mkdirSync, cpSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadKnowledgeSources } from './sync-knowledge.mjs';
 
 /** Share values, not global homepage layout rules, with the Quartz stylesheet. */
 export function extractHomeTokens(css) {
@@ -19,6 +20,7 @@ export function prepareKnowledge(root = process.cwd()) {
   cpSync(path.join(root, 'knowledge-quartz/custom.scss'), path.join(styles, 'custom.scss'));
   cpSync(path.join(root, 'knowledge-quartz/quartz.config.yaml'), path.join(workspace, 'quartz.config.yaml'));
   cpSync(path.join(root, 'knowledge-quartz/plugins'), path.join(workspace, 'local-plugins'), {recursive: true});
+  writeFileSync(path.join(workspace, 'local-plugins/site-ui/src/sources.mjs'), `export const sourceConfig = ${JSON.stringify(loadKnowledgeSources(root), null, 2)};\n`);
   execFileSync(process.execPath, [path.join(workspace, 'local-plugins/site-ui/build.mjs')], {stdio: 'inherit'});
 }
 

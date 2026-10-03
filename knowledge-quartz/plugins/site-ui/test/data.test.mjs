@@ -27,10 +27,11 @@ test('edit links preserve original filenames rather than reverse-engineering slu
   assert.equal(source.path, 'knowledge/leetcode/A & B.md');
   assert.match(source.editUrl, /A%20%26%20B\.md$/);
 });
-test('machine-learning edits point to the source repo, including its renamed README', () => {
+test('machine-learning edits preserve distinct authored index and README targets', () => {
   const root = sourceFor(file('machine-learning/index', '机器学习'));
   assert.equal(root.repository, 'avengerdsf/machine-learning-notes');
-  assert.equal(root.path, 'README.md');
+  assert.equal(root.path, 'index.md');
+  assert.equal(sourceFor(file('machine-learning/README', '说明')).path, 'README.md');
   const note = sourceFor(file('machine-learning/a-b', 'A', {relativePath: 'machine-learning/A B.md'}));
   assert.equal(note.path, 'A B.md');
 });

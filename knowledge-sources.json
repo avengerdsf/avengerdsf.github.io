@@ -1,0 +1,16 @@
+{
+  "site": {
+    "repository": "avengerdsf/avengerdsf.github.io",
+    "ref": "main",
+    "path": "knowledge"
+  },
+  "sources": [
+    {
+      "repository": "avengerdsf/machine-learning-notes",
+      "ref": "main",
+      "target": "machine-learning",
+      "title": "机器学习学习笔记",
+      "checkout": ".build/machine-learning-notes"
+    }
+  ]
+}

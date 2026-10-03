@@ -84,6 +84,9 @@ plugins:
       delimiters: "---"
       language: yaml
     order: 45
+  - source: "./local-plugins/note-title"
+    enabled: true
+    order: 46
   - source: "@quartz-community/table-of-contents"
     enabled: true
     order: 50
@@ -133,6 +136,8 @@ plugins:
     enabled: true
   - source: "@quartz-community/explorer"
     enabled: true
+    options:
+      title: 知识目录
     layout:
       position: left
       priority: 50
@@ -140,7 +145,7 @@ plugins:
     enabled: true
     layout:
       position: header
-      priority: 10
+      priority: 20
   - source: "@quartz-community/article-title"
     enabled: true
     layout:
@@ -151,7 +156,7 @@ plugins:
   - source: "./local-plugins/site-ui"
     enabled: true
     layout:
-      position: left
+      position: header
       priority: 10
   - source: "./local-plugins/knowledge-actions"
     enabled: true
@@ -167,9 +172,9 @@ plugins:
     enabled: true
     layout:
       position: header
-      priority: 20
+      priority: 40
   - source: "@quartz-community/spacer"
-    enabled: true
+    enabled: false
     options: {}
     layout:
       position: left

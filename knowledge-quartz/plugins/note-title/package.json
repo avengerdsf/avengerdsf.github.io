@@ -1,0 +1,21 @@
+{
+  "name": "@avengerdsf/quartz-note-title",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "exports": {
+    ".": "./dist/index.mjs"
+  },
+  "quartz": {
+    "name": "note-title",
+    "displayName": "Markdown content title",
+    "category": "transformer",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 46,
+    "defaultEnabled": true,
+    "defaultOptions": {}
+  }
+}

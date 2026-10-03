@@ -3,9 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:knowledge": "node scripts/build-knowledge.mjs --ml-source .build/machine-learning-notes",
+    "build:knowledge": "node scripts/build-site.mjs",
     "validate:source": "node scripts/validate-site.mjs --source",
-    "validate:built": "node scripts/validate-site.mjs --built"
+    "validate:built": "node scripts/validate-site.mjs --built",
+    "sync:knowledge": "node scripts/sync-knowledge.mjs",
+    "test": "node --test knowledge-quartz/plugins/site-ui/test/*.test.mjs scripts/test/*.test.mjs"
   },
   "dependencies": {
     "katex": "0.18.4",

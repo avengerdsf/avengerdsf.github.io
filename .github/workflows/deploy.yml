@@ -23,12 +23,6 @@ jobs:
       - name: Checkout site
         uses: actions/checkout@v5
 
-      - name: Checkout machine-learning notes
-        uses: actions/checkout@v5
-        with:
-          repository: avengerdsf/machine-learning-notes
-          path: .build/machine-learning-notes
-
       - name: Checkout Quartz 5
         uses: actions/checkout@v5
         with:
@@ -45,22 +39,11 @@ jobs:
         run: node scripts/validate-site.mjs --source
 
       - name: Test knowledge UI and shared theme
-        run: node --test knowledge-quartz/plugins/site-ui/test/*.test.mjs scripts/test/prepare-knowledge.test.mjs
+        run: node --test knowledge-quartz/plugins/site-ui/test/*.test.mjs scripts/test/*.test.mjs
 
       - name: Prepare Quartz workspace
         run: |
-          rm -rf .build/quartz/content .build/quartz/local-plugins
-          mkdir -p .build/quartz/content .build/quartz/local-plugins
-          cp -R knowledge/. .build/quartz/content/
-          mkdir -p .build/quartz/content/machine-learning
-          rsync -a --exclude=.git --exclude=.github .build/machine-learning-notes/ .build/quartz/content/machine-learning/
-          if [ -f .build/quartz/content/machine-learning/README.md ]; then
-            mv .build/quartz/content/machine-learning/README.md .build/quartz/content/machine-learning/index.md
-          fi
-          if [ -f .build/quartz/content/machine-learning/index.md ] && ! head -n 1 .build/quartz/content/machine-learning/index.md | grep -q '^---$'; then
-            { printf '%s\n' '---' 'title: 机器学习学习笔记' '---' ''; cat .build/quartz/content/machine-learning/index.md; } > .build/quartz/content/machine-learning/index.md.tmp
-            mv .build/quartz/content/machine-learning/index.md.tmp .build/quartz/content/machine-learning/index.md
-          fi
+          node scripts/sync-knowledge.mjs
           node scripts/prepare-knowledge.mjs
 
       - name: Test and build algorithm demo plugin
@@ -78,11 +61,11 @@ jobs:
 
       - name: Install Quartz plugins
         working-directory: .build/quartz
-        run: npx quartz plugin install --from-config --concurrency 2
+        run: node quartz/bootstrap-cli.mjs plugin install --from-config --concurrency 2
 
       - name: Build Quartz knowledge base
         working-directory: .build/quartz
-        run: npx quartz build
+        run: node quartz/bootstrap-cli.mjs build
 
       - name: Verify generated knowledge site
         run: |

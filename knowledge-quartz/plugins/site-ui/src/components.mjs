@@ -1,6 +1,6 @@
 import { h } from 'preact';
 import { sourceFor, newNoteUrl, noteHref } from './data.mjs';
-import { directoryContents, parentDirectoryHref } from './navigation.mjs';
+import { directoryContents, parentDirectoryHref, navigationBridge } from './navigation.mjs';
 import { themeBridge } from './theme.mjs';
 
 const external = {target: '_blank', rel: 'noopener noreferrer', 'data-no-popover': true};
@@ -10,7 +10,7 @@ const folderIcon = () => h('svg', {viewBox: '0 0 24 24', fill: 'none', stroke: '
 );
 
 export function KnowledgeBrand() {
-  const Brand = () => h('a', {class: 'kb-brand', href: '/', 'data-router-ignore': true, 'aria-label': 'Chenyinhong，返回主页'},
+  const Brand = () => h('a', {class: 'kb-brand kb-home-link', href: '/', 'data-router-ignore': true, 'aria-label': 'Chenyinhong，返回主页'},
     h('img', {src: 'https://avatars.githubusercontent.com/u/119413549?v=4', width: 34, height: 34, alt: ''}),
     h('span', null, 'Chenyinhong'),
   );
@@ -19,20 +19,30 @@ export function KnowledgeBrand() {
 }
 
 export function KnowledgeActions() {
-  return ({fileData, allFiles}) => {
+  const Actions = ({fileData, allFiles}) => {
     const source = sourceFor(fileData);
     const parent = parentDirectoryHref(fileData.slug);
     const isDirectory = fileData.slug === 'index' || fileData.slug?.endsWith('/index');
     return h('nav', {class: 'kb-actions', 'aria-label': '知识库操作'},
-      h('a', {class: 'kb-home-link', href: '/', 'data-router-ignore': true}, '← 返回主页'),
-      parent && h('a', {class: `internal kb-root-link${parent === '/knowledge/' ? ' kb-up-link' : ''}`, href: '/knowledge/'}, '知识库'),
-      parent && parent !== '/knowledge/' && h('a', {class: 'kb-up-link internal', href: parent, title: '返回上一级目录'}, '↑ 上一级'),
-      source && fileData.slug !== 'index' && h('a', {...external, class: 'kb-edit-link', href: source.editUrl}, isDirectory ? '编辑目录' : '编辑本文', arrow()),
-      h('a', {...external, class: 'kb-new-note', href: newNoteUrl(fileData, allFiles), title: '在当前目录新建 Markdown 笔记'}, h('span', {'aria-hidden': 'true'}, '+'), '新增笔记'),
+      h('button', {class: 'kb-directory-toggle', type: 'button', 'data-directory-toggle': true, 'aria-label': '打开目录', 'aria-expanded': false, 'aria-controls': 'kb-directory'},
+        h('svg', {viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'aria-hidden': true}, h('path', {d: 'M4 5h16M4 12h16M4 19h16'})),
+      ),
+      h('details', {class: 'kb-tools'},
+        h('summary', {class: 'kb-tools-toggle', 'aria-label': '更多操作', title: '更多操作'},
+          h('svg', {viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': true}, ...[5,12,19].map(cx => h('circle', {cx, cy: 12, r: 1.7}))),
+        ),
+        h('div', {class: 'kb-tools-menu'},
+          parent && h('a', {class: 'internal kb-root-link', href: '/knowledge/'}, '知识库'),
+          parent && parent !== '/knowledge/' && h('a', {class: 'kb-up-link internal', href: parent, title: '返回上一级目录'}, '↑ 上一级'),
+          source && fileData.slug !== 'index' && h('a', {...external, class: 'kb-edit-link', href: source.editUrl}, isDirectory ? '编辑目录' : '编辑本文', arrow()),
+          h('a', {...external, class: 'kb-new-note', href: newNoteUrl(fileData, allFiles), title: '在当前目录新建 Markdown 笔记'}, '+ 新增笔记'),
+        ),
+      ),
     );
   };
+  Actions.afterDOMLoaded = navigationBridge;
+  return Actions;
 }
-
 export function KnowledgeOverview() {
   return ({fileData, allFiles}) => {
     const slug = fileData.slug;
@@ -44,7 +54,7 @@ export function KnowledgeOverview() {
       directories.length > 0 && h('ul', {class: 'kb-notebooks kb-directory-list', 'aria-label': scope === 'leetcode' ? '题型目录' : '子目录'}, directories.map(directory => h('li', {key: directory.slug},
         h('a', {class: 'internal kb-directory-link', href: noteHref(`${directory.slug}/index`)},
           h('span', {class: 'kb-directory-icon'}, folderIcon()),
-          h('span', {class: 'kb-directory-label'}, h('strong', null, directory.title.replace(/(?:学习)?笔记$/, '') || directory.title)),
+          h('span', {class: 'kb-directory-label'}, h('strong', null, directory.title)),
           h('span', {class: 'kb-directory-arrow', 'aria-hidden': 'true'}, '→'),
         ),
       ))),

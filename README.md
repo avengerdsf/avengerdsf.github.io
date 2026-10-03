@@ -8,7 +8,7 @@
 
 原先六篇算法概述保留在各自题型目录的 `overview.md`，仅修改标题以区分题型与文章，正文未删改。“两数之和”仍在 `hash-table/two-sum.md`，算法演示不变。没有为了填满列表补造题解。
 
-页面不再展示标题旁的返回文字、面包屑、篇数等辅助小字。顶部 **← 返回主页** 返回个人主页 `/`；**↑ 上一级** 返回当前文章所属题型或父目录。直接打开深层链接也可以逐级返回，不依赖浏览器历史记录。
+首页只保留作者简介、项目和知识库入口，笔记正文在独立知识页阅读。两者共用配色、字体和深浅主题。悬浮工具栏中的头像/姓名返回个人主页；“更多操作”内的知识库或上一级链接按真实目录返回，不依赖浏览器历史。目录按钮在桌面收起侧栏，在窄屏打开抽屉；抽屉支持关闭按钮、遮罩、Escape 和选择笔记后关闭。
 
 ## 添加与编辑笔记
 
@@ -42,9 +42,11 @@ title: 题号 · 题目名称
 
 ### 机器学习笔记
 
-`/knowledge/machine-learning/` 来自 `avengerdsf/machine-learning-notes`。新增和编辑会指向源仓库；源仓库 `README.md` 提供目录元数据。章节按实际文件夹组织，不把所有章节的文章合并成一个列表。
+`/knowledge/machine-learning/` 来自 `avengerdsf/machine-learning-notes`，唯一配置在 `knowledge-sources.json`；本地力扣笔记仍由 `knowledge/leetcode/` 提供。新增和编辑指向各自的真实仓库、分支和文件路径。源仓库的章节、中文及带空格的文件名、图片与相对链接原样保留，目录只展示当前层的子目录和笔记。
 
-源仓库提交后由现有每小时同步任务更新，也可手动运行 **Deploy static content to Pages**。本仓库 `knowledge/` 的提交直接触发部署。
+同步保留真实 `README.md` 和 `index.md`，两者不会相互覆盖。缺少 `index.md` 的笔记目录会生成仅含目录名称的首页；这个生成页面没有编辑按钮，新增笔记仍指向源仓库的对应目录。编辑 README 请进入该 README 笔记页面。
+
+源仓库提交后由每小时第 17 分钟运行的任务拉取最新提交，也可手动运行 **Deploy static content to Pages**。本仓库 `knowledge/` 的提交直接触发部署。每次构建都会重新生成内容输出，源仓库已删除的笔记也会从站点移除；失败的同步会阻止本次发布。
 
 ## 代码与验证
 
@@ -55,19 +57,40 @@ knowledge-quartz/quartz.config.yaml       Quartz 插件与布局
 knowledge-quartz/custom.scss              知识库样式
 knowledge-quartz/plugins/site-ui/         当前层目录、顶部导航、新增与编辑
 knowledge-quartz/plugins/algorithm-demo/  算法演示与代码折叠
+knowledge-sources.json                   本地和 GitHub 笔记来源
+scripts/sync-knowledge.mjs                拉取来源、保留文件层级、清洁内容输出
 scripts/prepare-knowledge.mjs             提取主页设计变量、准备本地插件
 scripts/test-knowledge-browser.py         目录、题型、文章与交互检查
 .github/workflows/validate.yml            回归测试、构建和页面截图
 .github/workflows/deploy.yml              GitHub Pages 发布
 ```
 
-Node.js 22 或更高版本：
+Node.js 24 与 Git：
 
 ```bash
-node --test knowledge-quartz/plugins/site-ui/test/*.test.mjs scripts/test/prepare-knowledge.test.mjs
+node --test knowledge-quartz/plugins/site-ui/test/*.test.mjs scripts/test/*.test.mjs
 node scripts/validate-site.mjs --source
 ```
 
-完整构建以工作流为准，使用固定 Quartz 提交，并合并本地笔记及机器学习源仓库。旧的 `scripts/build-knowledge.mjs` 是迁移前的生成器，不用于当前知识库。
+本地完整构建与预览：
+
+```bash
+npm test
+npm run build:knowledge
+python scripts/serve-site.py
+```
+
+构建入口首次会获取固定 Quartz 与已指定笔记源、安装构建依赖，之后复用 `.build/` 缓存。打开 `http://127.0.0.1:4173/`，可同时预览首页、目录和无扩展名文章链接；已有源 checkout 可使用 `npm run build:knowledge -- --skip-fetch` 离线重新生成。首次获取依赖需要联网。
+
+部署工作流使用相同的固定 Quartz 提交及内容准备步骤：
+
+```bash
+node scripts/sync-knowledge.mjs
+node scripts/prepare-knowledge.mjs
+```
+
+同步脚本按配置 clone 或更新机器学习笔记，仅清洁 `.build/quartz/content/`；不会替换 Quartz checkout 或清理已安装的插件依赖。来源 checkout 有未提交的修改时会停止，避免覆盖本地内容。已有 checkout 需要离线重新生成内容时可用 `node scripts/sync-knowledge.mjs --skip-fetch`，它不会联网，但要求配置中的来源目录已存在。
+
+构建通过 checkout 中的 `node quartz/bootstrap-cli.mjs plugin install --from-config --concurrency 2` 和 `node quartz/bootstrap-cli.mjs build` 使用固定版本。当前 `npm run build:knowledge` 使用 `scripts/build-site.mjs`；旧的 `scripts/build-knowledge.mjs` 是迁移前的生成器，不用于当前知识库。
 
 验证工作流会上传 `knowledge-ui-preview` 与 `knowledge-ui-checks`。前者包含可通过 HTTP 服务预览的完整站点，后者包含实际浏览器截图和检查报告。源码根目录直接启动 HTTP 服务仅能预览原生主页，不能渲染 Markdown 知识库。

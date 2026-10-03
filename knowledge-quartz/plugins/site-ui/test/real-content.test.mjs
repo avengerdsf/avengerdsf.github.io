@@ -27,3 +27,19 @@ test('edit targets keep authored filenames and protect against traversal', () =>
  assert.match(sourceFor(real('notes/a', {relativePath:'notes/A & B.md'})).editUrl, /A%20%26%20B\.md$/);
  assert.equal(sourceFor(real('notes/a',{relativePath:'../README.md'})), null);
 });
+
+test('generated directory metadata never advertises an authored edit target', () => {
+ const generated = real('machine-learning/index', {frontmatter: {title: '机器学习', knowledgeGeneratedIndex: true}});
+ assert.equal(sourceFor(generated), null);
+ const url = new URL(newNoteUrl(generated));
+ assert.equal(url.pathname, '/avengerdsf/machine-learning-notes/new/main');
+ assert.equal(url.searchParams.get('filename'), '新笔记.md');
+});
+
+test('new notes in generated nested indexes preserve the real Chinese and spaced folder', () => {
+ const generated = real('machine-learning/目录-空格/深层/index', {relativePath: 'machine-learning/目录 空格/深层/index.md', frontmatter: {knowledgeGeneratedIndex: true}});
+ assert.equal(sourceFor(generated), null);
+ const url = new URL(newNoteUrl(generated));
+ assert.equal(url.pathname, '/avengerdsf/machine-learning-notes/new/main');
+ assert.equal(url.searchParams.get('filename'), '目录 空格/深层/新笔记.md');
+});
