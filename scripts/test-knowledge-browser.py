@@ -63,6 +63,45 @@ def entry_appearance(page, selector):
         };
     }''')
 
+def stable_navigation(page, locator, destination):
+    page.evaluate('''() => {
+        const selectors = {toolbar: '.page-header > header', brand: '.kb-brand', search: '.search-button', actions: '.kb-actions', theme: '.darkmode', sidebar: '.sidebar.left', directoryTitle: '.kb-drawer-head', reading: '.center'};
+        const snapshot = () => Object.fromEntries(Object.entries(selectors).map(([name, selector]) => {
+            const el = document.querySelector(selector);
+            if (!el) return [name, null];
+            const css = getComputedStyle(el), r = el.getBoundingClientRect();
+            if (css.display === 'none' || r.width === 0 || r.height === 0) return [name, null];
+            return [name, {x:r.x, y:r.y, width:r.width, height:r.height, visibility:css.visibility, opacity:Number(css.opacity)}];
+        }));
+        const trace = {baseline:snapshot(), frames:[], navigated:false, postFrames:0, complete:false};
+        window.__kbNavigationTrace = trace;
+        document.addEventListener('nav', () => {trace.navigated = true;}, {once:true});
+        const sample = () => {
+            trace.frames.push({controls:snapshot(), treeLinks:document.querySelectorAll('.explorer-content a').length});
+            if (trace.navigated) trace.postFrames++;
+            if (trace.postFrames >= 8) trace.complete = true;
+            else requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+    }''')
+    locator.click()
+    page.wait_for_url(destination)
+    page.wait_for_function('window.__kbNavigationTrace.complete')
+    trace = page.evaluate('window.__kbNavigationTrace')
+    for index, frame in enumerate(trace['frames']):
+        for name, baseline in trace['baseline'].items():
+            if baseline is None:
+                assert frame['controls'][name] is None, f'{destination}: hidden {name} appears at frame {index}'
+                continue
+            actual = frame['controls'][name]
+            assert actual is not None, f'{destination}: {name} disappears at frame {index}'
+            assert actual['visibility'] == 'visible' and actual['opacity'] > 0.99, (destination, name, index, actual)
+            fields = ['x', 'width'] if name == 'reading' else ['x', 'y', 'width', 'height']
+            for field in fields:
+                assert abs(actual[field] - baseline[field]) <= 1, f'{destination}: {name}.{field} shifts {baseline[field]} -> {actual[field]} at frame {index}'
+        assert frame['treeLinks'] > 0, f'{destination}: directory tree is empty at frame {index}'
+    return {'destination':destination, 'frameCount':len(trace['frames']), 'trace':trace}
+
 try:
     with sync_playwright() as playwright:
         candidates = [os.environ.get('BROWSER_EXECUTABLE'), shutil.which('google-chrome'), shutil.which('chromium'), shutil.which('chromium-browser'), r'C:\Program Files\Google\Chrome\Application\chrome.exe', r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe']
@@ -150,6 +189,37 @@ try:
             page.screenshot(path=str(output/f'home-{width}.png'))
             print(f'Responsive pages passed at {width}px', flush=True)
 
+        transitions = []
+        for width in [390, 1024, 1440, 2048]:
+            page.set_viewport_size({'width':width, 'height':1000})
+            page.goto(origin+'/knowledge/', wait_until='networkidle')
+            expect(page.locator('.explorer-content a').first).to_be_attached()
+            chain = [
+                ('.kb-directory-link[href="/knowledge/leetcode/"]', '/knowledge/leetcode/'),
+                ('.kb-directory-link[href="/knowledge/leetcode/hash-table/"]', '/knowledge/leetcode/hash-table/'),
+                ('.kb-note-link[href="/knowledge/leetcode/hash-table/two-sum"]', '/knowledge/leetcode/hash-table/two-sum'),
+            ]
+            for selector, path in chain:
+                result = stable_navigation(page, page.locator(selector), origin+path)
+                transitions.append({'width':width, **result})
+            for path in ['/knowledge/leetcode/hash-table/', '/knowledge/leetcode/']:
+                result = stable_navigation(page, tools(page).locator(f'a[href="{path}"]'), origin+path)
+                transitions.append({'width':width, **result})
+            for selector, path in [('.kb-directory-link[href="/knowledge/leetcode/binary-search/"]', '/knowledge/leetcode/binary-search/'), ('.kb-note-link[href="/knowledge/leetcode/binary-search/overview"]', '/knowledge/leetcode/binary-search/overview')]:
+                result = stable_navigation(page, page.locator(selector), origin+path)
+                transitions.append({'width':width, **result})
+            if width > 900:
+                page.locator('[data-directory-toggle]').click()
+                expect(page.locator('[data-directory-toggle]')).to_have_attribute('aria-expanded', 'false')
+                path = '/knowledge/leetcode/binary-search/'
+                result = stable_navigation(page, tools(page).locator(f'a[href="{path}"]'), origin+path)
+                transitions.append({'width':width, 'directoryCollapsed':True, **result})
+                path = '/knowledge/leetcode/binary-search/overview'
+                result = stable_navigation(page, page.locator('.kb-note-link'), origin+path)
+                transitions.append({'width':width, 'directoryCollapsed':True, **result})
+            print(f'Navigation frames passed at {width}px', flush=True)
+        (output/'navigation-frames.json').write_text(json.dumps(transitions, indent=2), encoding='utf-8')
+
         page.set_viewport_size({'width':1440, 'height':1000})
         page.goto(origin+'/knowledge/', wait_until='networkidle')
         page.locator('.search-button').click()
@@ -209,7 +279,8 @@ try:
         expect(toggle).to_have_attribute('aria-expanded', 'false')
         expect(toggle).to_be_focused()
         toggle.click()
-        page.locator('[data-directory-backdrop]').click(position={'x':385, 'y':300})
+        backdrop_width = page.locator('[data-directory-backdrop]').bounding_box()['width']
+        page.locator('[data-directory-backdrop]').click(position={'x':backdrop_width - 5, 'y':300})
         expect(toggle).to_have_attribute('aria-expanded', 'false')
         toggle.click()
         page.locator('[data-directory-close]').click()
@@ -229,8 +300,8 @@ try:
         expect(page.locator('[data-directory-backdrop]')).not_to_be_visible()
         no_overflow(page, 'resize')
         assert not errors, errors
-        (output/'report.json').write_text(json.dumps({'responsive':results, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'algorithmDemo':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
+        (output/'report.json').write_text(json.dumps({'responsive':results, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'algorithmDemo':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
         browser.close()
 finally:
     server.shutdown()
-print(f'Browser checks passed: {len(results)} knowledge and {len(widths)} homepage responsive cases, hierarchy, floating toolbar, search, themes, directory dismissal, resize and algorithm demo.')
+print(f'Browser checks passed: {len(results)} knowledge and {len(widths)} homepage responsive cases, {len(transitions)} sampled navigation transitions, hierarchy, floating toolbar, search, themes, directory dismissal, resize and algorithm demo.')

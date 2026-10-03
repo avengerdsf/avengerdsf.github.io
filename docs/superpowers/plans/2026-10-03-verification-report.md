@@ -34,3 +34,15 @@ The user's follow-up identified that directory cards and article entry rows stil
 The new browser assertion compares actual card/list/title computed styles against the root directory reference at every tested viewport. It first reproduced the old binary-search row mismatch, then passed on the shared implementation. The final 57 Node tests, complete Quartz build and 54 responsive browser cases pass. Independent review checked adjacent levels at 390/1440px, and the actual in-app preview was reloaded and visibly verified.
 
 Follow-up screenshots and report: ui-checkpoints/card-unification/ (git-ignored local evidence).
+
+## Follow-up: stable controls during page changes
+
+The previous layout selected 1288px or 1084px grid geometry according to the presence of an article TOC. The fixed directory therefore jumped 102px when opening an article; the new animation-frame test reproduced sidebar.x changing from 178 to 76 on frame 3.
+
+The shared page shell now anchors the toolbar, directory and reading area independently of content. The main grid stays at two columns; the article TOC uses available right-side space from 1368px without changing that grid. Stable scrollbar space and consistent percentage widths cover classic scrollbars, and body min-width no longer offsets the 320px layout. SPA and font resources were not changed.
+
+The formal build and 57 Node tests pass. The complete 54-case responsive/card suite passes, including 28 sampled transitions with 311 frames. Focused navigation tests cover 34 transitions and 379 frames, including collapsed directories and keeping hidden controls hidden. Public control x/y/width/height and reading x/width have maximum measured change 0px; every sampled visible control stays visible, and the directory tree has no empty sampled frame.
+
+Independent review additionally covers TOC boundaries and short/long articles. Actual in-app article-to-folder-to-article navigation also keeps the same toolbar, directory and reading width/position.
+
+Evidence: ui-checkpoints/navigation-stability/ and ui-checkpoints/navigation-stability-focused/ (local ignored artifacts).
