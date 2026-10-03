@@ -26,3 +26,11 @@ Independent design/code audit: 2026-10-03-audit-report.md. Implementation report
 ## Publication boundary
 
 These checks verify the local implementation. A draft pull request preserves review before merging to main and publishing through GitHub Pages. Hourly and manual source synchronization are encoded in the deployment workflow.
+
+## Follow-up: identical entry cards across navigation levels
+
+The user's follow-up identified that directory cards and article entry rows still differed despite the prior shared theme. Directory and article entries now use the same kb-entry classes for grid, surface, border, radius, padding, icon placement, title and hover treatment. Only folder/document SVG paths distinguish their purpose. This applies automatically to LeetCode topics, binary-search notes, hash-table notes and synced chapter notes.
+
+The new browser assertion compares actual card/list/title computed styles against the root directory reference at every tested viewport. It first reproduced the old binary-search row mismatch, then passed on the shared implementation. The final 57 Node tests, complete Quartz build and 54 responsive browser cases pass. Independent review checked adjacent levels at 390/1440px, and the actual in-app preview was reloaded and visibly verified.
+
+Follow-up screenshots and report: ui-checkpoints/card-unification/ (git-ignored local evidence).

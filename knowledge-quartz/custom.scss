@@ -97,22 +97,16 @@ article blockquote { margin-inline: 0; padding: 8px 16px; border-left: 3px solid
 .page-header:has(.kb-overview) > .popover-hint { padding: 8px 0 0; border: 0; border-radius: 0; background: transparent; }
 .center:has(.kb-overview) > article, .center:has(.kb-overview) > .popover-hint { display: none; }
 .kb-overview { margin-top: 24px; }
-.kb-notebooks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
-.kb-directory-list > li { min-width: 0; margin: 0; }
-.kb-overview .kb-directory-link { display: flex; align-items: center; gap: 14px; min-height: 80px; height: 100%; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-solid); color: var(--text-strong); transition: border-color var(--transition); }
-.kb-overview .kb-directory-link:hover { border-color: var(--accent); }
-.kb-directory-icon { display: grid; place-items: center; flex: 0 0 32px; height: 32px; color: var(--accent); }
-.kb-directory-icon svg { display: block; width: 24px; height: 24px; }
-.kb-directory-label { display: flex; flex: 1; min-width: 0; }
-.kb-directory-label strong { color: var(--text-strong); font-size: 1.05rem; overflow-wrap: anywhere; }
-.kb-directory-arrow { color: var(--muted); flex-shrink: 0; }
-.kb-note-list { list-style: none; margin: 0; padding: 0; }
-.kb-directory-list + .kb-note-list { margin-top: 24px; }
-.kb-note-list > li { min-width: 0; margin: 0; border-bottom: 1px solid var(--line); }
-.kb-overview .kb-note-link { display: flex; align-items: center; gap: 16px; min-height: 56px; padding: 14px 8px; border: 0; border-radius: 0; background: transparent; color: var(--text); transition: background var(--transition); }
-.kb-overview .kb-note-link:hover { background: var(--accent-soft); color: var(--accent-strong); }
-.kb-note-title { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
-.kb-note-arrow { flex-shrink: 0; color: var(--muted); }
+.kb-entry-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
+.kb-entry-list > li { min-width: 0; margin: 0; }
+.kb-entry-list + .kb-entry-list { margin-top: 24px; }
+.kb-overview .kb-entry-link { display: flex; align-items: center; gap: 14px; min-height: 80px; height: 100%; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-solid); color: var(--text-strong); transition: border-color var(--transition), background var(--transition); }
+.kb-overview .kb-entry-link:hover { border-color: var(--accent); background: var(--surface-muted); }
+.kb-entry-icon { display: grid; place-items: center; flex: 0 0 32px; height: 32px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); }
+.kb-entry-icon svg { display: block; width: 24px; height: 24px; }
+.kb-entry-label { display: flex; flex: 1; min-width: 0; }
+.kb-entry-title { color: var(--text-strong); font-size: 1.05rem; font-weight: 650; line-height: 1.5; overflow-wrap: anywhere; }
+.kb-entry-arrow { color: var(--muted); flex-shrink: 0; }
 .kb-empty { margin-top: 24px; color: var(--muted); }
 
 .page > #quartz-body .sidebar.right { grid-area: right !important; top: 96px; height: calc(100dvh - 112px); min-width: 0; padding: 8px 0 24px; background: transparent; }
@@ -143,8 +137,8 @@ footer, .page-footer:empty { display: none !important; }
   .explorer .explorer-content, .explorer.collapsed > .explorer-content { position: static !important; width: 100%; height: auto !important; max-height: 100%; padding: 0 8px 16px !important; transform: none !important; visibility: visible !important; overflow-y: auto; }
   .page > #quartz-body > :not(.sidebar.left:has(.explorer)), .page > #quartz-body.lock-scroll > :not(.sidebar.left:has(.explorer)) { transform: none !important; transition: none !important; }
   .page > #quartz-body .sidebar.right { display: none !important; }
-  .kb-notebooks { grid-template-columns: 1fr; }
-  .kb-overview .kb-directory-link { min-height: 72px; padding: 16px 20px; }
+  .kb-entry-list { grid-template-columns: 1fr; }
+  .kb-overview .kb-entry-link { min-height: 72px; padding: 16px 20px; }
 }
 @media (max-width: 560px) {
   .kb-brand span { display: none; }
