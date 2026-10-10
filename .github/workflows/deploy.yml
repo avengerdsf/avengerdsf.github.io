@@ -69,23 +69,7 @@ jobs:
 
       - name: Verify generated knowledge site
         run: |
-          test -f .build/quartz/public/index.html
-          TWO_SUM_PAGE="$(find .build/quartz/public/leetcode/hash-table -maxdepth 1 -type f -name 'two-sum*.html' -print -quit)"
-          test -n "$TWO_SUM_PAGE"
-          grep -q '两数之和' "$TWO_SUM_PAGE"
-          grep -q '哈希表记录元素下标' "$TWO_SUM_PAGE"
-          grep -q 'algorithm-idea-line' "$TWO_SUM_PAGE"
-          grep -q 'two-sum-demo' "$TWO_SUM_PAGE"
-          ! grep -q 'title: 两数之和' "$TWO_SUM_PAGE"
-          ! grep -q '关系图' "$TWO_SUM_PAGE"
-          ! grep -q '反向链接' "$TWO_SUM_PAGE"
-          ! grep -q '指针从左向右扫描数组' "$TWO_SUM_PAGE"
-          grep -R -q 'two-sum-demo__pointer' .build/quartz/public
-          grep -q 'kb-overview' .build/quartz/public/index.html
-          grep -q 'kb-brand' "$TWO_SUM_PAGE"
-          grep -q 'kb-new-note' "$TWO_SUM_PAGE"
-          grep -q 'kb-edit-link' "$TWO_SUM_PAGE"
-          ! grep -q '0 个目录 · 0 篇笔记' .build/quartz/public/index.html
+          node scripts/validate-site.mjs --built
 
       - name: Stage static site
         run: |

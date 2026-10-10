@@ -31,13 +31,24 @@ if (mode === "source") {
   const titles = new Map([
     ["knowledge/leetcode/index.md", "力扣算法笔记"],
     ["knowledge/leetcode/hash-table/index.md", "哈希表"],
-    ["knowledge/leetcode/hash-table/two-sum.md", "两数之和"],
+    ["knowledge/leetcode/hash-table/two-sum.md", "P4000 · 两数之和"],
     ["knowledge/leetcode/binary-search/index.md", "二分查找"],
     ["knowledge/leetcode/sliding-window/index.md", "滑动窗口"],
-    ["knowledge/leetcode/dfs-bfs/index.md", "DFS / BFS"],
-    ["knowledge/leetcode/union-find/index.md", "并查集"],
-    ["knowledge/leetcode/topological-sort/index.md", "拓扑排序"],
     ["knowledge/leetcode/dynamic-programming/index.md", "动态规划"],
+    ["knowledge/leetcode/two-pointers/index.md", "双指针"],
+    ["knowledge/leetcode/substring/index.md", "子串"],
+    ["knowledge/leetcode/array/index.md", "普通数组"],
+    ["knowledge/leetcode/matrix/index.md", "矩阵"],
+    ["knowledge/leetcode/linked-list/index.md", "链表"],
+    ["knowledge/leetcode/binary-tree/index.md", "二叉树"],
+    ["knowledge/leetcode/graph/index.md", "图论"],
+    ["knowledge/leetcode/backtracking/index.md", "回溯"],
+    ["knowledge/leetcode/stack/index.md", "栈"],
+    ["knowledge/leetcode/greedy/index.md", "贪心算法"],
+    ["knowledge/leetcode/multidimensional-dp/index.md", "多维动态规划"],
+    ["knowledge/leetcode/techniques/index.md", "技巧"],
+    ["knowledge/leetcode/sorting/index.md", "排序"],
+    ["knowledge/leetcode/math/index.md", "数学"],
   ]);
   await requireFiles(["knowledge/index.md", ...titles.keys()]);
   if (await exists("knowledge/index.html")) errors.push("knowledge/index.html: a generated page must not replace Markdown sources");
@@ -46,12 +57,14 @@ if (mode === "source") {
     const source = await read(file);
     if (!source.startsWith("---\n") || !source.includes(`\ntitle: ${title}\n`)) errors.push(`${file}: missing Chinese frontmatter title ${title}`);
   }
-  for (const topic of ['binary-search', 'sliding-window', 'dfs-bfs', 'union-find', 'topological-sort', 'dynamic-programming']) {
-    await requireFiles([`knowledge/leetcode/${topic}/overview.md`]);
+  for (const file of titles.keys()) {
+    if (!file.endsWith('/index.md') || file === 'knowledge/leetcode/index.md') continue;
+    const topic = file.split('/').at(-2);
     if (await exists(`knowledge/leetcode/${topic}.md`)) errors.push(`${topic}: topics must be folders`);
   }
-  const demo = "knowledge/leetcode/hash-table/two-sum.md";
-  if (await exists(demo)) requireText(await read(demo), ['<two-sum-demo', 'class="algorithm-idea-line"', "## 代码\n\n```python"], demo);
+  await requireFiles(['knowledge/leetcode/multidimensional-dp/overview.md']);
+  const twoSum = "knowledge/leetcode/hash-table/two-sum.md";
+  if (await exists(twoSum)) requireText(await read(twoSum), ['## 题目', '## 思路', "## 代码\n\n```python", 'n, target = map(int, input().split())'], twoSum);
 
   await requireFiles(["knowledge-sources.json", "scripts/sync-knowledge.mjs", "scripts/prepare-knowledge.mjs", "knowledge-quartz/quartz.config.yaml", "knowledge-quartz/custom.scss", "knowledge-quartz/plugins/site-ui/src/components.mjs", "knowledge-quartz/plugins/site-ui/src/navigation.mjs", "knowledge-quartz/plugins/site-ui/src/data.mjs"]);
   if (await exists("knowledge-sources.json")) {
@@ -78,7 +91,7 @@ if (mode === "source") {
   for (const file of [`${output}/index.html`, `${output}/leetcode/hash-table/two-sum.html`]) {
     if (await exists(file)) requireText(await read(file), ['kb-brand', 'kb-tools', 'data-directory-toggle'], file);
   }
-  if (await exists(`${output}/leetcode/hash-table/two-sum.html`)) requireText(await read(`${output}/leetcode/hash-table/two-sum.html`), ['two-sum-demo', '哈希表记录元素下标'], 'Preserved article');
+  if (await exists(`${output}/leetcode/hash-table/two-sum.html`)) requireText(await read(`${output}/leetcode/hash-table/two-sum.html`), ['P4000 · 两数之和', '第一行输入两个整数', '哈希表记录已经出现的数字'], 'Provided article');
 }
 if (errors.length) {
   console.error(`Site ${mode} validation failed with ${errors.length} error(s):`);

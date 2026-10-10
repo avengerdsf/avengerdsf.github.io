@@ -165,13 +165,15 @@ try:
                     if name == 'folder':
                         assert '/knowledge/leetcode/binary-search/' in directories
                         assert '/knowledge/leetcode/hash-table/' in directories
+                        assert len(directories) == 18
                 else:
                     if name == 'learning-article':
                         expect(page.locator('.article-title')).to_have_text('线性回归模型')
                         expect(page.locator('article > h1')).to_have_count(0)
                         expect(page.locator('.katex').first).to_be_visible()
                     else:
-                        expect(page.locator('two-sum-demo .two-sum-demo__pointer').first).to_be_attached()
+                        expect(page.locator('.article-title')).to_have_text('P4000 · 两数之和')
+                        expect(page.locator('two-sum-demo')).to_have_count(0)
                     if name == 'article':
                         expect(page.locator('.algorithm-code')).to_have_count(1)
                     assert page.locator('.center').bounding_box()['width'] <= 900
@@ -205,7 +207,7 @@ try:
             for path in ['/knowledge/leetcode/hash-table/', '/knowledge/leetcode/']:
                 result = stable_navigation(page, tools(page).locator(f'a[href="{path}"]'), origin+path)
                 transitions.append({'width':width, **result})
-            for selector, path in [('.kb-directory-link[href="/knowledge/leetcode/binary-search/"]', '/knowledge/leetcode/binary-search/'), ('.kb-note-link[href="/knowledge/leetcode/binary-search/overview"]', '/knowledge/leetcode/binary-search/overview')]:
+            for selector, path in [('.kb-directory-link[href="/knowledge/leetcode/binary-search/"]', '/knowledge/leetcode/binary-search/'), ('.kb-note-link[href="/knowledge/leetcode/binary-search/p4023"]', '/knowledge/leetcode/binary-search/p4023')]:
                 result = stable_navigation(page, page.locator(selector), origin+path)
                 transitions.append({'width':width, **result})
             if width > 900:
@@ -214,8 +216,8 @@ try:
                 path = '/knowledge/leetcode/binary-search/'
                 result = stable_navigation(page, tools(page).locator(f'a[href="{path}"]'), origin+path)
                 transitions.append({'width':width, 'directoryCollapsed':True, **result})
-                path = '/knowledge/leetcode/binary-search/overview'
-                result = stable_navigation(page, page.locator('.kb-note-link'), origin+path)
+                path = '/knowledge/leetcode/binary-search/p4023'
+                result = stable_navigation(page, page.locator('.kb-note-link[href="/knowledge/leetcode/binary-search/p4023"]'), origin+path)
                 transitions.append({'width':width, 'directoryCollapsed':True, **result})
             print(f'Navigation frames passed at {width}px', flush=True)
         (output/'navigation-frames.json').write_text(json.dumps(transitions, indent=2), encoding='utf-8')
@@ -232,14 +234,12 @@ try:
         expect(page.locator('.kb-overview')).to_have_attribute('data-scope', 'leetcode/binary-search')
         query = parse_qs(urlsplit(page.locator('.kb-new-note').get_attribute('href')).query)
         assert query['filename'] == ['knowledge/leetcode/binary-search/新笔记.md']
-        page.locator('.kb-note-link[href="/knowledge/leetcode/binary-search/overview"]').click()
-        expect(page.locator('.article-title')).to_contain_text('边界与模板')
+        page.locator('.kb-note-link[href="/knowledge/leetcode/binary-search/p4023"]').click()
+        expect(page.locator('.article-title')).to_contain_text('P4023 · 升序数组中的目标下标与插入点')
         for path in ['/knowledge/leetcode/binary-search/', '/knowledge/leetcode/', '/knowledge/']:
             tools(page).locator(f'a[href="{path}"]').click()
             page.wait_for_url(origin + path)
         page.goto(origin+'/knowledge/leetcode/hash-table/two-sum', wait_until='networkidle')
-        page.locator('two-sum-demo [data-action="next"]').click()
-        expect(page.locator('.two-sum-demo__status')).to_contain_text('查找')
         page.locator('.algorithm-code > summary').click()
         expect(page.locator('.algorithm-code')).to_have_attribute('open', '')
         page.evaluate('scrollTo(0, document.body.scrollHeight)')
@@ -300,8 +300,8 @@ try:
         expect(page.locator('[data-directory-backdrop]')).not_to_be_visible()
         no_overflow(page, 'resize')
         assert not errors, errors
-        (output/'report.json').write_text(json.dumps({'responsive':results, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'algorithmDemo':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
+        (output/'report.json').write_text(json.dumps({'responsive':results, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'codeFolding':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
         browser.close()
 finally:
     server.shutdown()
-print(f'Browser checks passed: {len(results)} knowledge and {len(widths)} homepage responsive cases, {len(transitions)} sampled navigation transitions, hierarchy, floating toolbar, search, themes, directory dismissal, resize and algorithm demo.')
+print(f'Browser checks passed: {len(results)} knowledge and {len(widths)} homepage responsive cases, {len(transitions)} sampled navigation transitions, hierarchy, floating toolbar, search, themes, directory dismissal, resize and code folding.')
