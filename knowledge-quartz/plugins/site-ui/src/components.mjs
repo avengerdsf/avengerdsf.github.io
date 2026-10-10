@@ -3,6 +3,7 @@ import { sourceFor, newNoteUrl, noteHref } from './data.mjs';
 import { directoryContents, parentDirectoryHref, navigationBridge } from './navigation.mjs';
 import { themeBridge } from './theme.mjs';
 import { leetcodeProblemNotes, randomBrowseBridge } from './random.mjs';
+import { noteSplitBridge } from './note-split.mjs';
 
 const external = {target: '_blank', rel: 'noopener noreferrer', 'data-no-popover': true};
 const arrow = () => h('span', {'aria-hidden': 'true'}, '↗');
@@ -44,7 +45,7 @@ export function KnowledgeActions() {
       ),
     );
   };
-  Actions.afterDOMLoaded = navigationBridge;
+  Actions.afterDOMLoaded = `${navigationBridge}\n${noteSplitBridge}`;
   return Actions;
 }
 export function KnowledgeOverview() {

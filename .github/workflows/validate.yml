@@ -69,7 +69,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install --no-install-recommends -y fonts-noto-cjk
 
-      - name: Render 2048px visual checkpoint
+      - name: Render 4K visual checkpoint
         if: ${{ !cancelled() && hashFiles('.build/quartz/public/index.html') != '' }}
         run: |
           mkdir -p .build/preview/knowledge
@@ -87,7 +87,7 @@ jobs:
           done
           CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
           test -n "$CHROME"
-          "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=3000 --window-size=2048,1152 --screenshot="$GITHUB_WORKSPACE/.build/two-sum-visual.png" "http://127.0.0.1:4173/knowledge/$RELATIVE_PAGE"
+          "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=3000 --window-size=3840,2160 --screenshot="$GITHUB_WORKSPACE/.build/two-sum-visual.png" "http://127.0.0.1:4173/knowledge/$RELATIVE_PAGE"
           "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=3000 --window-size=1440,1000 --screenshot="$GITHUB_WORKSPACE/.build/knowledge-desktop.png" "http://127.0.0.1:4173/knowledge/"
           "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=3000 --window-size=768,1024 --screenshot="$GITHUB_WORKSPACE/.build/knowledge-tablet.png" "http://127.0.0.1:4173/knowledge/"
           "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=3000 --window-size=390,844 --screenshot="$GITHUB_WORKSPACE/.build/knowledge-mobile.png" "http://127.0.0.1:4173/knowledge/"

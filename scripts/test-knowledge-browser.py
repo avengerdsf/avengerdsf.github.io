@@ -59,8 +59,16 @@ def note_cards(page, label):
     expect(cards.nth(1)).to_have_attribute('aria-label', '思路与代码')
     expect(cards.nth(0).locator('.algorithm-code')).to_have_count(0)
     first, second = [card.bounding_box() for card in cards.all()]
-    assert abs(first['x'] - second['x']) <= 1 and abs(first['width'] - second['width']) <= 1, (label, first, second)
-    assert second['y'] - first['y'] - first['height'] >= 23, (label, first, second)
+    layout_width = article.locator('.markdown-preview-view').bounding_box()['width']
+    if layout_width >= 1100:
+        expect(article.locator('.kb-note-splitter')).to_be_visible()
+        assert abs(first['y'] - second['y']) <= 1, (label, first, second)
+        assert abs(second['x'] - first['x'] - first['width'] - 24) <= 1, (label, first, second)
+        assert first['width'] >= 419 and second['width'] >= 519, (label, first, second)
+    else:
+        expect(article.locator('.kb-note-splitter')).not_to_be_visible()
+        assert abs(first['x'] - second['x']) <= 1 and abs(first['width'] - second['width']) <= 1, (label, first, second)
+        assert second['y'] - first['y'] - first['height'] >= 23, (label, first, second)
     assert article.evaluate('el => getComputedStyle(el).borderWidth') == '0px'
     for card in cards.all():
         assert card.evaluate('el => getComputedStyle(el).borderTopWidth') == '1px'
@@ -76,7 +84,7 @@ def entry_appearance(page, selector):
         return {
             card: pick(el, ['display', 'gap', 'minHeight', 'padding', 'borderWidth', 'borderStyle', 'borderRadius', 'backgroundColor', 'color', 'transitionProperty']),
             title: pick(el.querySelector('.kb-entry-title') || el.querySelector('.kb-directory-label strong, .kb-note-title'), ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'color', 'overflowWrap']),
-            list: pick(el.closest('ul'), ['display', 'gridTemplateColumns', 'rowGap', 'columnGap']),
+            list: {...pick(el.closest('ul'), ['display', 'rowGap', 'columnGap']), columns:getComputedStyle(el.closest('ul')).gridTemplateColumns.split(' ').length},
             itemBorder: getComputedStyle(el.parentElement).borderBottomWidth,
         };
     }''')
@@ -133,9 +141,9 @@ try:
         page.set_default_timeout(15000)
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
-        widths = [int(value) for value in sys.argv[3].split(',')] if len(sys.argv) > 3 else [320, 390, 768, 1024, 1440, 2048]
+        widths = [int(value) for value in sys.argv[3].split(',')] if len(sys.argv) > 3 else [320, 390, 768, 1024, 1440, 1920, 2560, 3840]
         for width in widths:
-            page.set_viewport_size({'width':width, 'height':1000})
+            page.set_viewport_size({'width':width, 'height':2160 if width == 3840 else 1000})
             reference_entries = {}
             for name, path, scope, parent in cases:
                 page.mouse.move(0, 0)
@@ -144,6 +152,8 @@ try:
                 expect(page.locator('.kb-brand')).to_be_visible()
                 expect(page.locator('.kb-brand')).to_have_attribute('href', '/')
                 overflow = no_overflow(page, f'{name} {width}px')
+                if width == 3840:
+                    assert 3500 <= page.locator('.page').bounding_box()['width'] <= 3600
                 expect(page.locator('.breadcrumb-container, .kb-overview-meta, .kb-directory-count')).to_have_count(0)
                 toolbar = page.locator('.page-header > header')
                 expect(toolbar).to_be_visible()
@@ -216,7 +226,8 @@ try:
                         expect(main.locator('.kb-solution-card img')).to_have_count(2)
                         for image in main.locator('.kb-solution-card img').all():
                             assert image.evaluate('el => el.complete && el.naturalWidth > 0')
-                    assert page.locator('.center').bounding_box()['width'] <= 900
+                    if width >= 1920:
+                        assert main.bounding_box()['width'] > 1200
                     expected_source = {'article':'knowledge/leetcode/hash-table/two-sum.md', 'heap-article':'knowledge/leetcode/heap/p4851.md'}.get(name, 'machine-learning-notes/edit/main/chapter_01_supervised_learning/01_learning_regression.md')
                     assert expected_source in page.locator('.kb-edit-link').get_attribute('href')
                 page.screenshot(path=str(output/f'{name}-{width}.png'))
@@ -245,6 +256,63 @@ try:
                         assert image.evaluate('el => el.complete && el.naturalWidth > 0')
             page.goto(origin+'/knowledge/leetcode/multidimensional-dp/overview', wait_until='networkidle')
             expect(main.locator('.kb-note-card')).to_have_count(0)
+
+        split_checks = []
+        for width in [1920, 2560, 3840]:
+            page.set_viewport_size({'width':width, 'height':2160 if width == 3840 else 1080})
+            page.goto(origin+'/knowledge/leetcode/dynamic-programming/p4031', wait_until='networkidle')
+            splitter = main.locator('.kb-note-splitter')
+            expect(splitter).to_be_visible()
+            splitter.dblclick()
+            note_cards(page, f'split default {width}px')
+            problem = main.locator('.kb-problem-card')
+            solution = main.locator('.kb-solution-card')
+            assert solution.bounding_box()['width'] > problem.bounding_box()['width']
+            def drag_to(x):
+                box = splitter.bounding_box()
+                page.mouse.move(box['x'] + box['width']/2, box['y'] + 60)
+                page.mouse.down()
+                page.mouse.move(x, box['y'] + 60, steps=8)
+                page.mouse.up()
+                assert not page.locator('body').evaluate('el => el.classList.contains("kb-note-resizing")')
+            drag_to(1)
+            assert abs(problem.bounding_box()['width'] - 420) <= 1
+            note_cards(page, f'left minimum {width}px')
+            drag_to(width-1)
+            assert abs(solution.bounding_box()['width'] - 520) <= 1
+            note_cards(page, f'right minimum {width}px')
+            splitter.focus()
+            page.keyboard.press('Home')
+            assert abs(problem.bounding_box()['width'] - 420) <= 1
+            page.keyboard.press('ArrowRight')
+            assert abs(problem.bounding_box()['width'] - 440) <= 1
+            page.keyboard.press('End')
+            assert abs(solution.bounding_box()['width'] - 520) <= 1
+            page.keyboard.press('ArrowLeft')
+            assert abs(solution.bounding_box()['width'] - 540) <= 1
+            splitter.dblclick()
+            splitter.focus()
+            page.keyboard.press('ArrowRight')
+            saved_ratio = float(page.evaluate('localStorage.getItem("avengerdsf-note-split")'))
+            before_reload = problem.bounding_box()['width']
+            page.reload(wait_until='networkidle')
+            assert abs(problem.bounding_box()['width'] - before_reload) <= 1
+            page.goto(origin+'/knowledge/leetcode/heap/p4027', wait_until='networkidle')
+            assert abs(problem.bounding_box()['width'] - before_reload) <= 1
+            assert float(page.evaluate('localStorage.getItem("avengerdsf-note-split")')) == saved_ratio
+            page.goto(origin+'/knowledge/leetcode/dynamic-programming/p4031', wait_until='networkidle')
+            splitter.dblclick()
+            main.locator('.algorithm-code > summary').click()
+            expect(main.locator('.algorithm-code')).to_have_attribute('open', '')
+            page.evaluate('scrollTo(0, 0)')
+            page.screenshot(path=str(output/f'wide-note-{width}.png'), full_page=True)
+            page.set_viewport_size({'width':390, 'height':844})
+            note_cards(page, f'split narrow fallback from {width}px')
+            expect(splitter).not_to_be_visible()
+            page.set_viewport_size({'width':width, 'height':2160 if width == 3840 else 1080})
+            note_cards(page, f'split wide restore {width}px')
+            split_checks.append({'width':width, 'minimumWidths':[420,520], 'dragging':True, 'keyboard':True, 'reloadAndNavigationRetention':True, 'narrowFallback':True})
+            print(f'Resizable note columns passed at {width}px', flush=True)
 
         random_expected = {'/knowledge/' + slug for slug in content_index if slug.startswith('leetcode/') and not slug.endswith(('/index','/overview'))}
         random_checks = []
@@ -283,7 +351,7 @@ try:
             random_checks.append({'width':width, 'noteCount':len(first), 'reshuffle':True, 'navigationAndReloadRetention':True})
 
         transitions = []
-        for width in [390, 1024, 1440, 2048]:
+        for width in [390, 1024, 1440, 1920, 3840]:
             page.set_viewport_size({'width':width, 'height':1000})
             page.goto(origin+'/knowledge/', wait_until='networkidle')
             expect(page.locator('.explorer-content a').first).to_be_attached()
@@ -391,7 +459,7 @@ try:
         expect(page.locator('[data-directory-backdrop]')).not_to_be_visible()
         no_overflow(page, 'resize')
         assert not errors, errors
-        (output/'report.json').write_text(json.dumps({'responsive':results, 'randomBrowsing':random_checks, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'noteNamePreviews':True, 'problemSolutionCards':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'codeFolding':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
+        (output/'report.json').write_text(json.dumps({'responsive':results, 'resizableNoteColumns':split_checks, 'randomBrowsing':random_checks, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'noteNamePreviews':True, 'problemSolutionCards':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'codeFolding':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
         browser.close()
 finally:
     server.shutdown()

@@ -17,16 +17,18 @@ test('problem examples stay separate from reasoning, code and additional notes w
   const nodes = [...problem, text('\n'), ...solution];
   const tree = {type: 'root', children: [...nodes]};
   transform(tree);
-  assert.equal(tree.children.length, 2);
+  assert.equal(tree.children.length, 3);
   assert.deepEqual(tree.children[0].properties.className, ['kb-note-card', 'kb-problem-card']);
-  assert.deepEqual(tree.children[1].properties.className, ['kb-note-card', 'kb-solution-card']);
+  assert.equal(tree.children[1].properties.role, 'separator');
+  assert.equal(tree.children[1].properties.ariaOrientation, 'vertical');
+  assert.deepEqual(tree.children[2].properties.className, ['kb-note-card', 'kb-solution-card']);
   const restored = tree.children.flatMap(card => card.children);
   assert.deepEqual(restored, nodes);
   restored.forEach((node, index) => assert.equal(node, nodes[index]));
   assert.deepEqual(tree.children[0].children, [...problem, nodes[4]]);
-  assert.deepEqual(tree.children[1].children, solution);
+  assert.deepEqual(tree.children[2].children, solution);
   transform(tree);
-  assert.equal(tree.children.length, 2);
+  assert.equal(tree.children.length, 3);
   assert.deepEqual(tree.children.flatMap(card => card.children), nodes);
 });
 
@@ -38,9 +40,9 @@ test('existing problem and reasoning title variants retain their heading anchors
       solution.children.push(element('a', [], {href: '#' + solutionTitle}));
       const tree = {type: 'root', children: [problem, solution]};
       transform(tree);
-      assert.equal(tree.children.length, 2);
+      assert.equal(tree.children.length, 3);
       assert.equal(tree.children[0].children[0], problem);
-      assert.equal(tree.children[1].children[0], solution);
+      assert.equal(tree.children[2].children[0], solution);
     }
   }
 });

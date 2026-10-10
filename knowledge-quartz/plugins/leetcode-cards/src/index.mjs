@@ -18,6 +18,11 @@ export default function LeetcodeCards() {
         if (solution < 0) return;
         tree.children = [
           card('problem', '题目', tree.children.slice(0, solution)),
+          {
+            type: 'element', tagName: 'div',
+            properties: {className: ['kb-note-splitter'], role: 'separator', tabIndex: 0, ariaOrientation: 'vertical', ariaLabel: '调整题目与思路代码的宽度', ariaValueMin: 0, ariaValueMax: 100, ariaValueNow: 44, title: '拖动调整宽度，双击恢复；方向键微调'},
+            children: [],
+          },
           card('solution', '思路与代码', tree.children.slice(solution)),
         ];
       }];
