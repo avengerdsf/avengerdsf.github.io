@@ -49,6 +49,21 @@ def no_overflow(page, label):
     assert overflow <= 1, f'{label}: horizontal overflow {overflow}px'
     return overflow
 
+def note_cards(page, label):
+    article = page.locator('.page > #quartz-body > .center > article')
+    cards = article.locator('.kb-note-card')
+    expect(cards).to_have_count(2)
+    expect(cards.nth(0)).to_have_attribute('aria-label', '题目')
+    expect(cards.nth(1)).to_have_attribute('aria-label', '思路与代码')
+    expect(cards.nth(0).locator('.algorithm-code')).to_have_count(0)
+    first, second = [card.bounding_box() for card in cards.all()]
+    assert abs(first['x'] - second['x']) <= 1 and abs(first['width'] - second['width']) <= 1, (label, first, second)
+    assert second['y'] - first['y'] - first['height'] >= 23, (label, first, second)
+    assert article.evaluate('el => getComputedStyle(el).borderWidth') == '0px'
+    for card in cards.all():
+        assert card.evaluate('el => getComputedStyle(el).borderTopWidth') == '1px'
+    no_overflow(page, label)
+
 def entry_appearance(page, selector):
     return page.locator(selector).first.evaluate('''el => {
         const pick = (node, keys) => {
@@ -185,11 +200,14 @@ try:
                         expect(main.locator('.article-title')).to_have_text('线性回归模型')
                         expect(page.locator('article > h1')).to_have_count(0)
                         expect(page.locator('.katex').first).to_be_visible()
+                        expect(main.locator('.kb-note-card')).to_have_count(0)
                     else:
                         expect(main.locator('.article-title')).to_have_text('P4000 · 两数之和')
                         expect(page.locator('two-sum-demo')).to_have_count(0)
                     if name == 'article':
                         expect(page.locator('.algorithm-code')).to_have_count(1)
+                        note_cards(page, f'{name} {width}px')
+                        expect(main.locator('.kb-solution-card .algorithm-code')).to_have_count(1)
                     assert page.locator('.center').bounding_box()['width'] <= 900
                     expected_source = 'knowledge/leetcode/hash-table/two-sum.md' if name == 'article' else 'machine-learning-notes/edit/main/chapter_01_supervised_learning/01_learning_regression.md'
                     assert expected_source in page.locator('.kb-edit-link').get_attribute('href')
@@ -204,6 +222,21 @@ try:
             assert not page.locator('a[href*="knowledge/#"]').count()
             page.screenshot(path=str(output/f'home-{width}.png'))
             print(f'Responsive pages passed at {width}px', flush=True)
+
+        for width in [390, 1440]:
+            page.set_viewport_size({'width':width, 'height':1000})
+            for slug in ['dynamic-programming/p4031', 'backtracking/p4021', 'sliding-window/p4007', 'hash-table/p4002', 'two-pointers/p4006', 'binary-tree/flip-equivalent-binary-trees']:
+                page.goto(origin+'/knowledge/leetcode/'+slug, wait_until='networkidle')
+                note_cards(page, f'{slug} {width}px')
+                if slug == 'dynamic-programming/p4031':
+                    expect(main.locator('.kb-solution-card h3')).to_have_text(['定义状态', '状态转移方程', '初始状态和边界条件', '状态转移方程求解'])
+                    expect(main.locator('.katex-error')).to_have_count(0)
+                    page.screenshot(path=str(output/f'note-cards-{width}.png'), full_page=True)
+                if slug == 'two-pointers/p4006':
+                    for image in main.locator('article img').all():
+                        assert image.evaluate('el => el.complete && el.naturalWidth > 0')
+            page.goto(origin+'/knowledge/leetcode/multidimensional-dp/overview', wait_until='networkidle')
+            expect(main.locator('.kb-note-card')).to_have_count(0)
 
         random_expected = {'/knowledge/' + slug for slug in content_index if slug.startswith('leetcode/') and not slug.endswith(('/index','/overview'))}
         random_checks = []
@@ -350,7 +383,7 @@ try:
         expect(page.locator('[data-directory-backdrop]')).not_to_be_visible()
         no_overflow(page, 'resize')
         assert not errors, errors
-        (output/'report.json').write_text(json.dumps({'responsive':results, 'randomBrowsing':random_checks, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'noteNamePreviews':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'codeFolding':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
+        (output/'report.json').write_text(json.dumps({'responsive':results, 'randomBrowsing':random_checks, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'noteNamePreviews':True, 'problemSolutionCards':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'codeFolding':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
         browser.close()
 finally:
     server.shutdown()

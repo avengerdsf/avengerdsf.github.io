@@ -98,6 +98,13 @@ article blockquote { margin-inline: 0; padding: 8px 16px; border-left: 3px solid
 .algorithm-code > summary { padding: 12px 0; color: var(--text-strong); font-weight: 650; cursor: pointer; }
 .algorithm-code pre { margin: 0 0 16px; }
 
+.center:has(> article .kb-note-card) > .page-header > .popover-hint { padding: 8px 0 0; border: 0; border-radius: 0; background: transparent; }
+.center > article:has(.kb-note-card) { padding: 0; border: 0; border-radius: 0; background: transparent; }
+article > .markdown-preview-view:has(> .kb-note-card) { display: grid; gap: 24px; }
+.kb-note-card { display: flow-root; min-width: 0; padding: var(--kb-reading-padding); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-solid); }
+.kb-note-card > h2:first-child { margin-top: 0; }
+.kb-note-card > :last-child { margin-bottom: 0; }
+
 /* Every overview shows only its own level of the source tree. */
 .page-header:has(.kb-overview) > .popover-hint { padding: 8px 0 0; border: 0; border-radius: 0; background: transparent; }
 .center:has(.kb-overview) > article, .center:has(.kb-overview) > .popover-hint { display: none; }

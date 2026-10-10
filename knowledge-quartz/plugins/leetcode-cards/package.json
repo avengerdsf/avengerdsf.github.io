@@ -1,0 +1,21 @@
+{
+  "name": "@avengerdsf/quartz-leetcode-cards",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "exports": {
+    ".": "./dist/index.mjs"
+  },
+  "quartz": {
+    "name": "leetcode-cards",
+    "displayName": "LeetCode problem and solution cards",
+    "category": "transformer",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 90,
+    "defaultEnabled": true,
+    "defaultOptions": {}
+  }
+}

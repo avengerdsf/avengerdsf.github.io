@@ -106,6 +106,9 @@ plugins:
     options:
       renderEngine: katex
     order: 80
+  - source: "./local-plugins/leetcode-cards"
+    enabled: true
+    order: 90
   - source: "@quartz-community/quartz-fonts"
     enabled: true
   # The optional Obsidian theme overwrites shared fonts and adds width:100%!important
