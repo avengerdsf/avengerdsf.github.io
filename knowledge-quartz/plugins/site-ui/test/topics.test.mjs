@@ -32,6 +32,28 @@ test('draft, unlisted and generated pages never become categories', () => {
   const hidden = [file('private/a','A',{frontmatter:{draft:true}}),file('hidden/a','A',{unlisted:true}),{slug:'tags/algorithms',relativePath:'tags/algorithms.md'}];
   assert.deepEqual(directoryContents(hidden),{directories:[],notes:[]});
 });
+test('directory previews show at most five note names in numeric title order', () => {
+  const sample = [file('notes/index','笔记目录'),file('notes/six','笔记 6'),file('notes/two','笔记 2'),file('notes/five','笔记 5'),file('notes/one','笔记 1'),file('notes/four','笔记 4'),file('notes/three','笔记 3'),file('notes/ten','笔记 10')];
+  const directory = directoryContents(sample).directories[0];
+  assert.deepEqual(directory.previewNotes, [
+    {slug:'notes/one',title:'笔记 1'},
+    {slug:'notes/two',title:'笔记 2'},
+    {slug:'notes/three',title:'笔记 3'},
+    {slug:'notes/four',title:'笔记 4'},
+    {slug:'notes/five',title:'笔记 5'},
+  ]);
+});
+test('directory previews exclude indexes, hidden notes and neighboring folders', () => {
+  const sample = [file('notes/index','目录名称'),file('notes/a','A 直接笔记'),file('notes/nested/index','子目录'),file('notes/nested/b','B 子目录笔记'),file('notes/private','隐藏',{draft:true}),file('notes/unlisted','不列出',{unlisted:'true'}),{slug:'notes/generated',relativePath:'notes/generated.md'},file('notes-other/a','其他目录笔记')];
+  const directory = directoryContents(sample).directories.find(d=>d.slug==='notes');
+  assert.deepEqual(directory.previewNotes, [{slug:'notes/a',title:'A 直接笔记'},{slug:'notes/nested/b',title:'B 子目录笔记'}]);
+});
+test('directory previews retain the actual number of notes in sparse folders', () => {
+  const sample = [file('empty/index','空目录'),file('few/index','少量笔记'),file('few/one','唯一笔记')];
+  const directories = directoryContents(sample).directories;
+  assert.deepEqual(directories.find(d=>d.slug==='empty').previewNotes, []);
+  assert.deepEqual(directories.find(d=>d.slug==='few').previewNotes, [{slug:'few/one',title:'唯一笔记'}]);
+});
 test('parent navigation is structural, even when arriving without browser history', () => {
   assert.equal(parentDirectoryHref('index'),null);
   assert.equal(parentDirectoryHref('leetcode/index'),'/knowledge/');

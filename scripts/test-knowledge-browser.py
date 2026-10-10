@@ -27,6 +27,7 @@ server = ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Handler, direct
 Thread(target=server.serve_forever, daemon=True).start()
 origin = f'http://127.0.0.1:{server.server_port}'
 results = []
+content_index = json.loads((root/'knowledge/static/contentIndex.json').read_text(encoding='utf-8'))
 cases = [
     ('index', '/knowledge/', '', '/knowledge/'),
     ('folder', '/knowledge/leetcode/', 'leetcode', '/knowledge/'),
@@ -117,7 +118,7 @@ try:
         widths = [int(value) for value in sys.argv[3].split(',')] if len(sys.argv) > 3 else [320, 390, 768, 1024, 1440, 2048]
         for width in widths:
             page.set_viewport_size({'width':width, 'height':1000})
-            reference_entry = None
+            reference_entries = {}
             for name, path, scope, parent in cases:
                 response = page.goto(origin + path, wait_until='networkidle')
                 assert response.ok, (path, response.status)
@@ -143,12 +144,18 @@ try:
                 if scope is not None:
                     expect(page.locator('.kb-overview')).to_have_attribute('data-scope', scope)
                     expect(page.locator('.center article:visible, .center .page-listing:visible')).to_have_count(0)
-                    if name == 'index':
-                        reference_entry = entry_appearance(page, '.kb-directory-link')
                     for selector in ['.kb-directory-link', '.kb-note-link']:
                         if page.locator(selector).count():
                             actual_entry = entry_appearance(page, selector)
-                            assert actual_entry == reference_entry, f'{name} at {width}px changes entry appearance: {actual_entry} vs {reference_entry}'
+                            if selector not in reference_entries:
+                                reference_entries[selector] = actual_entry
+                            assert actual_entry == reference_entries[selector], f'{name} at {width}px changes entry appearance: {actual_entry} vs {reference_entries[selector]}'
+                    for card in page.locator('.kb-directory-link').all():
+                        prefix = unquote(urlsplit(card.get_attribute('href')).path).removeprefix('/knowledge/').strip('/') + '/'
+                        names = [entry['title'] for slug, entry in content_index.items() if slug.startswith(prefix) and not slug.endswith('/index')]
+                        preview = card.locator('.kb-directory-preview > li').all_text_contents()
+                        assert len(preview) == min(5, len(names)), (name, prefix, preview)
+                        assert all(title in names for title in preview), f'{prefix}: previews must contain only note names'
                     prefix = '/knowledge/' + (scope + '/' if scope else '')
                     directories = page.locator('.kb-directory-link').evaluate_all('(links) => links.map(a => a.getAttribute("href"))')
                     notes = page.locator('.kb-note-link').evaluate_all('(links) => links.map(a => a.getAttribute("href"))')
@@ -300,7 +307,7 @@ try:
         expect(page.locator('[data-directory-backdrop]')).not_to_be_visible()
         no_overflow(page, 'resize')
         assert not errors, errors
-        (output/'report.json').write_text(json.dumps({'responsive':results, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'codeFolding':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
+        (output/'report.json').write_text(json.dumps({'responsive':results, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'noteNamePreviews':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'codeFolding':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
         browser.close()
 finally:
     server.shutdown()

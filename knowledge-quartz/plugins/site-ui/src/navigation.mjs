@@ -23,7 +23,15 @@ export function directoryContents(files = [], scope = '') {
       notes.push({slug:file.slug, title:String(file.frontmatter?.title || relative)});
     }
   }
-  return {directories:[...directories.values()].sort((a,b) => a.slug.localeCompare(b.slug, 'en', {numeric:true})), notes:notes.sort(byTitle)};
+  return {
+    directories:[...directories.values()].sort((a,b) => a.slug.localeCompare(b.slug, 'en', {numeric:true})).map(directory => ({
+      ...directory,
+      previewNotes:source.filter(file => file.slug.startsWith(`${directory.slug}/`) && !file.slug.endsWith('/index'))
+        .map(file => ({slug:file.slug, title:String(file.frontmatter?.title || file.slug.split('/').at(-1))}))
+        .sort(byTitle).slice(0,5),
+    })),
+    notes:notes.sort(byTitle),
+  };
 }
 
 export function parentDirectoryHref(slug) {
