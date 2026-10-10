@@ -112,6 +112,7 @@ try:
         browser = playwright.chromium.launch(executable_path=executable, args=['--no-sandbox'])
         context = browser.new_context(color_scheme='light', viewport={'width':1440, 'height':1000})
         page = context.new_page()
+        main = page.locator('.page > #quartz-body > .center')
         page.set_default_timeout(15000)
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
@@ -120,6 +121,7 @@ try:
             page.set_viewport_size({'width':width, 'height':1000})
             reference_entries = {}
             for name, path, scope, parent in cases:
+                page.mouse.move(0, 0)
                 response = page.goto(origin + path, wait_until='networkidle')
                 assert response.ok, (path, response.status)
                 expect(page.locator('.kb-brand')).to_be_visible()
@@ -132,7 +134,7 @@ try:
                 toolbar_box = toolbar.bounding_box()
                 assert toolbar_box['x'] >= -1 and toolbar_box['x'] + toolbar_box['width'] <= width + 1
                 assert toolbar_box['height'] <= 72, toolbar_box
-                title_box = page.locator('.article-title').bounding_box()
+                title_box = main.locator('.article-title').bounding_box()
                 assert title_box['y'] >= toolbar_box['y'] + toolbar_box['height'], (name, width, title_box, toolbar_box)
                 menu = tools(page)
                 expect(menu.locator('.kb-new-note')).to_be_visible()
@@ -142,8 +144,10 @@ try:
                     expect(parent_link).to_have_attribute('href', parent)
                 menu.locator('summary').click()
                 if scope is not None:
-                    expect(page.locator('.kb-overview')).to_have_attribute('data-scope', scope)
+                    expect(main.locator('.kb-overview')).to_have_attribute('data-scope', scope)
                     expect(page.locator('.center article:visible, .center .page-listing:visible')).to_have_count(0)
+                    page.mouse.move(0, 0)
+                    page.wait_for_function('Array.from(document.querySelectorAll(".kb-overview .kb-entry-link")).every(node => node.getAnimations().every(animation => animation.playState !== "running"))')
                     for selector in ['.kb-directory-link', '.kb-note-link']:
                         if page.locator(selector).count():
                             actual_entry = entry_appearance(page, selector)
@@ -156,6 +160,9 @@ try:
                         preview = card.locator('.kb-directory-preview > li').all_text_contents()
                         assert len(preview) == min(5, len(names)), (name, prefix, preview)
                         assert all(title in names for title in preview), f'{prefix}: previews must contain only note names'
+                    if page.locator('.kb-directory-link').count():
+                        page.locator('.kb-directory-link').first.hover()
+                        expect(page.locator('.popover.active-popover')).to_have_count(0)
                     prefix = '/knowledge/' + (scope + '/' if scope else '')
                     directories = page.locator('.kb-directory-link').evaluate_all('(links) => links.map(a => a.getAttribute("href"))')
                     notes = page.locator('.kb-note-link').evaluate_all('(links) => links.map(a => a.getAttribute("href"))')
@@ -175,11 +182,11 @@ try:
                         assert len(directories) == 18
                 else:
                     if name == 'learning-article':
-                        expect(page.locator('.article-title')).to_have_text('线性回归模型')
+                        expect(main.locator('.article-title')).to_have_text('线性回归模型')
                         expect(page.locator('article > h1')).to_have_count(0)
                         expect(page.locator('.katex').first).to_be_visible()
                     else:
-                        expect(page.locator('.article-title')).to_have_text('P4000 · 两数之和')
+                        expect(main.locator('.article-title')).to_have_text('P4000 · 两数之和')
                         expect(page.locator('two-sum-demo')).to_have_count(0)
                     if name == 'article':
                         expect(page.locator('.algorithm-code')).to_have_count(1)
@@ -197,6 +204,42 @@ try:
             assert not page.locator('a[href*="knowledge/#"]').count()
             page.screenshot(path=str(output/f'home-{width}.png'))
             print(f'Responsive pages passed at {width}px', flush=True)
+
+        random_expected = {'/knowledge/' + slug for slug in content_index if slug.startswith('leetcode/') and not slug.endswith(('/index','/overview'))}
+        random_checks = []
+        for width in [390, 1440]:
+            page.set_viewport_size({'width':width, 'height':1000})
+            page.goto(origin+'/knowledge/leetcode/', wait_until='networkidle')
+            toggle = page.locator('[data-random-toggle]')
+            expect(toggle).to_have_text('乱序浏览')
+            expect(page.locator('[data-random-notes]')).not_to_be_visible()
+            before = page.locator('.kb-random-note-link').evaluate_all('(nodes) => nodes.map(node => node.getAttribute("href"))')
+            toggle.click()
+            expect(page.locator('.kb-directory-list')).not_to_be_visible()
+            expect(page.locator('[data-random-notes]')).to_be_visible()
+            expect(toggle).to_have_text('返回题型目录')
+            first = page.locator('.kb-random-note-link').evaluate_all('(nodes) => nodes.map(node => node.getAttribute("href"))')
+            assert len(first) == len(random_expected) and set(first) == random_expected
+            assert first != before
+            assert page.locator('[data-random-notes] .tag-link').count() == 0
+            no_overflow(page, f'random {width}px')
+            page.screenshot(path=str(output/f'random-{width}.png'))
+            page.locator('[data-random-refresh]').click()
+            second = page.locator('.kb-random-note-link').evaluate_all('(nodes) => nodes.map(node => node.getAttribute("href"))')
+            assert second != first and set(second) == random_expected
+            page.reload(wait_until='networkidle')
+            expect(page.locator('[data-random-notes]')).to_be_visible()
+            assert page.locator('.kb-random-note-link').evaluate_all('(nodes) => nodes.map(node => node.getAttribute("href"))') == second
+            page.locator('.kb-random-note-link').first.click()
+            page.wait_for_url(origin + second[0])
+            expect(page.locator('article')).to_be_visible()
+            page.go_back(wait_until='networkidle')
+            expect(page.locator('[data-random-notes]')).to_be_visible()
+            assert page.locator('.kb-random-note-link').evaluate_all('(nodes) => nodes.map(node => node.getAttribute("href"))') == second
+            page.locator('[data-random-toggle]').click()
+            expect(page.locator('.kb-directory-list')).to_be_visible()
+            expect(page.locator('[data-random-notes]')).not_to_be_visible()
+            random_checks.append({'width':width, 'noteCount':len(first), 'reshuffle':True, 'navigationAndReloadRetention':True})
 
         transitions = []
         for width in [390, 1024, 1440, 2048]:
@@ -238,11 +281,11 @@ try:
         expect(page.locator('.search-container')).not_to_be_visible()
         page.locator('.kb-directory-link[href="/knowledge/leetcode/"]').click()
         page.locator('.kb-directory-link[href="/knowledge/leetcode/binary-search/"]').click()
-        expect(page.locator('.kb-overview')).to_have_attribute('data-scope', 'leetcode/binary-search')
+        expect(main.locator('.kb-overview')).to_have_attribute('data-scope', 'leetcode/binary-search')
         query = parse_qs(urlsplit(page.locator('.kb-new-note').get_attribute('href')).query)
         assert query['filename'] == ['knowledge/leetcode/binary-search/新笔记.md']
         page.locator('.kb-note-link[href="/knowledge/leetcode/binary-search/p4023"]').click()
-        expect(page.locator('.article-title')).to_contain_text('P4023 · 升序数组中的目标下标与插入点')
+        expect(main.locator('.article-title')).to_contain_text('P4023 · 升序数组中的目标下标与插入点')
         for path in ['/knowledge/leetcode/binary-search/', '/knowledge/leetcode/', '/knowledge/']:
             tools(page).locator(f'a[href="{path}"]').click()
             page.wait_for_url(origin + path)
@@ -307,7 +350,7 @@ try:
         expect(page.locator('[data-directory-backdrop]')).not_to_be_visible()
         no_overflow(page, 'resize')
         assert not errors, errors
-        (output/'report.json').write_text(json.dumps({'responsive':results, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'noteNamePreviews':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'codeFolding':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
+        (output/'report.json').write_text(json.dumps({'responsive':results, 'randomBrowsing':random_checks, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'noteNamePreviews':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'codeFolding':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
         browser.close()
 finally:
     server.shutdown()
