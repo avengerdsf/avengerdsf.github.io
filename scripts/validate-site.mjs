@@ -44,6 +44,7 @@ if (mode === "source") {
     ["knowledge/leetcode/graph/index.md", "图论"],
     ["knowledge/leetcode/backtracking/index.md", "回溯"],
     ["knowledge/leetcode/stack/index.md", "栈"],
+    ["knowledge/leetcode/heap/index.md", "堆"],
     ["knowledge/leetcode/greedy/index.md", "贪心算法"],
     ["knowledge/leetcode/multidimensional-dp/index.md", "多维动态规划"],
     ["knowledge/leetcode/techniques/index.md", "技巧"],

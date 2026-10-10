@@ -33,9 +33,11 @@ cases = [
     ('folder', '/knowledge/leetcode/', 'leetcode', '/knowledge/'),
     ('topic', '/knowledge/leetcode/binary-search/', 'leetcode/binary-search', '/knowledge/leetcode/'),
     ('nested', '/knowledge/leetcode/hash-table/', 'leetcode/hash-table', '/knowledge/leetcode/'),
+    ('heap', '/knowledge/leetcode/heap/', 'leetcode/heap', '/knowledge/leetcode/'),
     ('learning', '/knowledge/machine-learning/', 'machine-learning', '/knowledge/'),
     ('synced-folder', '/knowledge/machine-learning/chapter_01_supervised_learning/', 'machine-learning/chapter_01_supervised_learning', '/knowledge/machine-learning/'),
     ('article', '/knowledge/leetcode/hash-table/two-sum', None, '/knowledge/leetcode/hash-table/'),
+    ('heap-article', '/knowledge/leetcode/heap/p4851', None, '/knowledge/leetcode/heap/'),
     ('learning-article', '/knowledge/machine-learning/chapter_01_supervised_learning/01_learning_regression', None, '/knowledge/machine-learning/chapter_01_supervised_learning/'),
 ]
 def tools(page):
@@ -194,7 +196,8 @@ try:
                     if name == 'folder':
                         assert '/knowledge/leetcode/binary-search/' in directories
                         assert '/knowledge/leetcode/hash-table/' in directories
-                        assert len(directories) == 18
+                        assert '/knowledge/leetcode/heap/' in directories
+                        assert len(directories) == 19
                 else:
                     if name == 'learning-article':
                         expect(main.locator('.article-title')).to_have_text('线性回归模型')
@@ -202,14 +205,19 @@ try:
                         expect(page.locator('.katex').first).to_be_visible()
                         expect(main.locator('.kb-note-card')).to_have_count(0)
                     else:
-                        expect(main.locator('.article-title')).to_have_text('P4000 · 两数之和')
+                        expected_title = 'P4851 · 模拟小根堆' if name == 'heap-article' else 'P4000 · 两数之和'
+                        expect(main.locator('.article-title')).to_have_text(expected_title)
                         expect(page.locator('two-sum-demo')).to_have_count(0)
-                    if name == 'article':
+                    if name in ['article', 'heap-article']:
                         expect(page.locator('.algorithm-code')).to_have_count(1)
                         note_cards(page, f'{name} {width}px')
                         expect(main.locator('.kb-solution-card .algorithm-code')).to_have_count(1)
+                    if name == 'heap-article':
+                        expect(main.locator('.kb-solution-card img')).to_have_count(2)
+                        for image in main.locator('.kb-solution-card img').all():
+                            assert image.evaluate('el => el.complete && el.naturalWidth > 0')
                     assert page.locator('.center').bounding_box()['width'] <= 900
-                    expected_source = 'knowledge/leetcode/hash-table/two-sum.md' if name == 'article' else 'machine-learning-notes/edit/main/chapter_01_supervised_learning/01_learning_regression.md'
+                    expected_source = {'article':'knowledge/leetcode/hash-table/two-sum.md', 'heap-article':'knowledge/leetcode/heap/p4851.md'}.get(name, 'machine-learning-notes/edit/main/chapter_01_supervised_learning/01_learning_regression.md')
                     assert expected_source in page.locator('.kb-edit-link').get_attribute('href')
                 page.screenshot(path=str(output/f'{name}-{width}.png'))
                 results.append({'page':name, 'width':width, 'overflow':overflow})
@@ -225,7 +233,7 @@ try:
 
         for width in [390, 1440]:
             page.set_viewport_size({'width':width, 'height':1000})
-            for slug in ['dynamic-programming/p4031', 'backtracking/p4021', 'sliding-window/p4007', 'hash-table/p4002', 'two-pointers/p4006', 'binary-tree/flip-equivalent-binary-trees']:
+            for slug in ['dynamic-programming/p4031', 'backtracking/p4021', 'sliding-window/p4007', 'hash-table/p4002', 'two-pointers/p4006', 'binary-tree/flip-equivalent-binary-trees', 'heap/p4027', 'heap/p4028', 'heap/p4083']:
                 page.goto(origin+'/knowledge/leetcode/'+slug, wait_until='networkidle')
                 note_cards(page, f'{slug} {width}px')
                 if slug == 'dynamic-programming/p4031':
