@@ -59,6 +59,9 @@ function installDirectoryNavigation() {
   window.__knowledgeDirectoryNavigation = true;
   const media = window.matchMedia('(max-width: 900px)');
   let state = directoryState(null, 'init', media.matches);
+  let scrollTop = 0;
+  try { scrollTop = Number(sessionStorage.getItem('explorerScrollTop')) || 0; } catch {}
+  let rememberScroll = () => {};
   let cleanup = () => {};
   const connect = () => {
     cleanup();
@@ -69,6 +72,10 @@ function installDirectoryNavigation() {
     const center = document.querySelector('#quartz-body > .center');
     const explorer = sidebar?.querySelector('.explorer');
     if (!sidebar || !toggle || !explorer) return;
+    const list = explorer.querySelector('.explorer-ul');
+    rememberScroll = () => {
+      if (state.open && list?.clientHeight) scrollTop = list.scrollTop;
+    };
     sidebar.id = 'kb-directory';
     explorer.classList.remove('collapsed');
     explorer.querySelector('.explorer-content')?.setAttribute('aria-expanded', 'true');
@@ -123,8 +130,10 @@ function installDirectoryNavigation() {
       toggle.setAttribute('aria-controls', sidebar.id);
       toggle.setAttribute('aria-label', state.open ? '关闭目录' : '打开目录');
       toggle.setAttribute('title', state.open ? '关闭目录' : '打开目录');
+      if (state.open && list) list.scrollTop = scrollTop;
     };
     const dispatch = (action, focus = false) => {
+      rememberScroll();
       state = directoryState(state, action, media.matches);
       paint();
       if (focus) toggle.focus();
@@ -175,6 +184,7 @@ function installDirectoryNavigation() {
   document.addEventListener('nav', connect);
   document.addEventListener('render', connect);
   document.addEventListener('prenav', () => {
+    rememberScroll();
     state = directoryState(state, 'navigate');
     cleanup();
   });

@@ -39,8 +39,8 @@ button, input, summary { font: inherit; }
 .kb-directory-close { display: none; }
 .explorer, .explorer.collapsed { flex: 1 1 auto; min-height: 0; max-height: 100%; }
 .explorer > button.mobile-explorer, .explorer > button.desktop-explorer { display: none !important; }
-.explorer .explorer-content { position: static; display: block; min-height: 0; max-height: 100%; margin: 0; padding: 0 8px 16px; border: 0; background: transparent; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
-.explorer-content .explorer-ul { max-height: none; overflow: visible; }
+.explorer .explorer-content { position: static; display: flex; flex-direction: column; flex: 1; min-height: 0; max-height: 100%; margin: 0; padding: 0 8px 16px; border: 0; background: transparent; overflow: hidden; }
+.explorer-content .explorer-ul { flex: 1; min-height: 0; max-height: 100%; overflow: auto; scroll-behavior: auto; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
 .explorer-content ul li { margin: 0; }
 .explorer-content ul li > a, .folder-container div > a, .folder-container div > button span { display: inline-block; padding: 7px 8px; border-radius: 8px; color: var(--muted); font-family: inherit; font-size: .95rem; font-weight: 500; line-height: 1.5; overflow-wrap: anywhere; opacity: 1; }
 .explorer-content ul li > a:hover, .folder-container div > a:hover, .folder-container div > button:hover span { background: var(--surface-muted); color: var(--text-strong); }
@@ -168,7 +168,7 @@ footer, .page-footer:empty { display: none !important; }
   .kb-directory-close { display: flex; font-size: 1.8rem; font-weight: 400; }
   .sidebar.left > .spacer { display: none; }
   .explorer, .explorer.collapsed { order: initial; align-self: stretch; overflow: hidden; margin: 0; }
-  .explorer .explorer-content, .explorer.collapsed > .explorer-content { position: static !important; width: 100%; height: auto !important; max-height: 100%; padding: 0 8px 16px !important; transform: none !important; visibility: visible !important; overflow-y: auto; }
+  .explorer .explorer-content, .explorer.collapsed > .explorer-content { position: static !important; width: 100%; height: auto !important; max-height: 100%; padding: 0 8px 16px !important; transform: none !important; visibility: visible !important; overflow-y: hidden; }
   .page > #quartz-body > :not(.sidebar.left:has(.explorer)), .page > #quartz-body.lock-scroll > :not(.sidebar.left:has(.explorer)) { transform: none !important; transition: none !important; }
   .page > #quartz-body .sidebar.right { display: none !important; }
   .kb-entry-list { grid-template-columns: 1fr; }

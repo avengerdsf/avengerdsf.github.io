@@ -350,6 +350,40 @@ try:
             expect(page.locator('[data-random-notes]')).not_to_be_visible()
             random_checks.append({'width':width, 'noteCount':len(first), 'reshuffle':True, 'navigationAndReloadRetention':True})
 
+        directory_scroll_checks = []
+        for width in [390, 1440, 3840]:
+            scroll_context = browser.new_context(viewport={'width':width, 'height':1000}, color_scheme='light')
+            scroll_page = scroll_context.new_page()
+            scroll_page.goto(origin+'/knowledge/leetcode/dynamic-programming/p4031', wait_until='networkidle')
+            scroll_page.evaluate('''() => {
+                const paths=Array.from(document.querySelectorAll('.explorer .folder-container')).map(node=>node.dataset.folderpath);
+                localStorage.setItem('fileTree',JSON.stringify(paths.map(path=>({path,collapsed:false}))));
+            }''')
+            scroll_page.reload(wait_until='networkidle')
+            for slug in ['p4026','p4025','p4026']:
+                if width <= 900:
+                    scroll_page.locator('[data-directory-toggle]').click()
+                link=scroll_page.locator(f'.explorer-content a[href="/knowledge/leetcode/stack/{slug}"]')
+                link.scroll_into_view_if_needed()
+                before=scroll_page.locator('.explorer-content').evaluate('node=>node.scrollTop+node.querySelector(".explorer-ul").scrollTop')
+                before_y=link.bounding_box()['y']
+                assert before>100
+                link.click()
+                scroll_page.wait_for_url(origin+f'/knowledge/leetcode/stack/{slug}')
+                expect(scroll_page.locator('.explorer-content a.active')).to_have_attribute('href',f'/knowledge/leetcode/stack/{slug}')
+                if width <= 900:
+                    expect(scroll_page.locator('[data-directory-toggle]')).to_have_attribute('aria-expanded','false')
+                    scroll_page.locator('[data-directory-toggle]').click()
+                after=scroll_page.locator('.explorer-content').evaluate('node=>node.scrollTop+node.querySelector(".explorer-ul").scrollTop')
+                assert abs(after-before)<=1,(width,slug,before,after)
+                assert abs(link.bounding_box()['y']-before_y)<=1,(width,slug,before_y,link.bounding_box())
+                directory_scroll_checks.append({'width':width,'note':slug,'scrollBefore':before,'scrollAfter':after})
+                if width <= 900:
+                    scroll_page.locator('[data-directory-close]').click()
+                    expect(scroll_page.locator('[data-directory-toggle]')).to_have_attribute('aria-expanded','false')
+            scroll_context.close()
+            print(f'Directory scroll position passed at {width}px',flush=True)
+
         transitions = []
         for width in [390, 1024, 1440, 1920, 3840]:
             page.set_viewport_size({'width':width, 'height':1000})
@@ -459,7 +493,7 @@ try:
         expect(page.locator('[data-directory-backdrop]')).not_to_be_visible()
         no_overflow(page, 'resize')
         assert not errors, errors
-        (output/'report.json').write_text(json.dumps({'responsive':results, 'resizableNoteColumns':split_checks, 'randomBrowsing':random_checks, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'noteNamePreviews':True, 'problemSolutionCards':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'codeFolding':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
+        (output/'report.json').write_text(json.dumps({'responsive':results, 'resizableNoteColumns':split_checks, 'randomBrowsing':random_checks, 'directoryScrollRetention':directory_scroll_checks, 'homeResponsive':True, 'directHierarchy':True, 'unifiedEntryCards':True, 'noteNamePreviews':True, 'problemSolutionCards':True, 'stableNavigationFrames':True, 'floatingToolbar':True, 'search':True, 'parentNavigation':True, 'sourceAuthoring':True, 'themePersistence':True, 'directoryDismissal':True, 'resize':True, 'codeFolding':True, 'pageErrors':errors}, indent=2), encoding='utf-8')
         browser.close()
 finally:
     server.shutdown()
