@@ -11,6 +11,13 @@
       "target": "machine-learning",
       "title": "机器学习学习笔记",
       "checkout": ".build/machine-learning-notes"
+    },
+    {
+      "repository": "avengerdsf/runtime-learning-notes",
+      "ref": "main",
+      "target": "runtime",
+      "title": "runtime学习笔记",
+      "checkout": ".build/runtime-learning-notes"
     }
   ]
 }
