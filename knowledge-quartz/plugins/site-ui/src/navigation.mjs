@@ -173,7 +173,26 @@ function installDirectoryNavigation() {
       if (tools) tools.open = false;
     });
     paint();
+    const documentToc = document.querySelector('.runtime-original .document-toc');
+    const updateDocumentOffset = () => document.documentElement.style.setProperty('--kb-document-toc-height', `${documentToc.getBoundingClientRect().height}px`);
+    const documentObserver = documentToc ? new ResizeObserver(updateDocumentOffset) : null;
+    if (documentObserver) {
+      updateDocumentOffset();
+      documentObserver.observe(documentToc);
+      on(documentToc, 'click', event => {
+        const link = event.target.closest('a[href^="#"]');
+        if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+        if (!target) return;
+        event.preventDefault();
+        event.stopPropagation();
+        history.pushState({}, '', link.hash);
+        window.scrollTo({top: window.scrollY + target.getBoundingClientRect().top - 84 - documentToc.getBoundingClientRect().height - 16, behavior: 'smooth'});
+      });
+    }
     cleanup = () => {
+      documentObserver?.disconnect();
+      document.documentElement.style.removeProperty('--kb-document-toc-height');
       listeners.forEach(remove => remove());
       if (center) center.inert = false;
       document.documentElement.classList.remove('kb-scroll-locked', 'mobile-no-scroll');
