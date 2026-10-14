@@ -190,6 +190,15 @@ function installDirectoryNavigation() {
         window.scrollTo({top: window.scrollY + target.getBoundingClientRect().top - 84 - documentToc.getBoundingClientRect().height - 16, behavior: 'smooth'});
       });
     }
+    const documentRoot = document.querySelector('.runtime-original[data-document-module]');
+    if (documentRoot && !documentRoot.dataset.documentReady) {
+      import(documentRoot.dataset.documentModule).then(module => {
+        if (documentRoot.isConnected && !documentRoot.dataset.documentReady) {
+          module.default(documentRoot);
+          documentRoot.dataset.documentReady = 'true';
+        }
+      }).catch(error => console.error('Document interaction failed to load', error));
+    }
     cleanup = () => {
       documentObserver?.disconnect();
       document.documentElement.style.removeProperty('--kb-document-toc-height');
