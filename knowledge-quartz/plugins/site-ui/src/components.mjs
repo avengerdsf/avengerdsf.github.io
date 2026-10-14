@@ -51,7 +51,17 @@ export function KnowledgeActions() {
 export function KnowledgeOverview() {
   const Overview = ({fileData, allFiles}) => {
     const slug = fileData.slug;
-    if (slug !== 'index' && (!slug?.endsWith('/index') || slug.startsWith('tags/'))) return null;
+    if (slug !== 'index' && !slug?.endsWith('/index')) {
+      const problems = slug?.startsWith('leetcode/') ? leetcodeProblemNotes(allFiles) : [];
+      if (!problems.some(note => note.slug === slug)) return null;
+      return h('nav', {class:'kb-random-navigation', 'data-random-navigation':true, 'data-note-slug':slug, 'data-random-links':JSON.stringify(Object.fromEntries(problems.map(note => [note.slug, noteHref(note.slug)]))), 'aria-label':'乱序题目导航', hidden:true},
+        h('span', {class:'kb-random-progress', 'data-random-progress':true}),
+        h('a', {class:'internal', href:'/knowledge/leetcode/', 'data-random-return':true, 'data-no-popover':'true'}, '返回乱序列表'),
+        h('a', {class:'internal kb-random-next', 'data-random-next':true, 'data-no-popover':'true', hidden:true}, '下一题 →'),
+        h('span', {class:'kb-random-end', 'data-random-end':true, hidden:true}, '已到最后一题'),
+      );
+    }
+    if (slug?.startsWith('tags/')) return null;
     const scope = slug === 'index' ? '' : slug.slice(0, -6);
     const {directories, notes} = directoryContents(allFiles, scope);
     const problems = scope === 'leetcode' ? leetcodeProblemNotes(allFiles) : [];
@@ -81,7 +91,7 @@ export function KnowledgeOverview() {
         ),
       ))),
       problems.length > 0 && h('ul', {id:'kb-random-notes', class:'kb-random-notes kb-entry-list', 'data-random-notes':true, 'aria-label':'乱序题目', hidden:true}, problems.map(note => h('li', {key:note.slug, 'data-note-slug':note.slug},
-        h('a', {class:'internal kb-random-note-link kb-entry-link', href:noteHref(note.slug), 'data-no-popover':'true'},
+        h('a', {class:'internal kb-random-note-link kb-entry-link', href:`${noteHref(note.slug)}?browse=random`, 'data-no-popover':'true'},
           h('span', {class:'kb-note-icon kb-entry-icon'}, documentIcon()),
           h('span', {class:'kb-note-title kb-entry-label'}, h('strong', {class:'kb-entry-title'}, note.title)),
           h('span', {class:'kb-note-arrow kb-entry-arrow', 'aria-hidden':'true'}, '→'),

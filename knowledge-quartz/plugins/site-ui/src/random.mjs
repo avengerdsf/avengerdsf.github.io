@@ -14,6 +14,14 @@ export function shuffleNotes(notes, random = Math.random) {
   return result;
 }
 
+export function randomNoteNavigation(state, slug, notes) {
+  if (!state?.active || !Array.isArray(state.order)) return null;
+  const available = new Set(notes);
+  const order = [...new Set(state.order.filter(note => available.has(note)))];
+  const index = order.indexOf(slug);
+  return index < 0 ? null : {position:index + 1, total:order.length, nextSlug:order[index + 1] ?? null};
+}
+
 function installRandomBrowsing() {
   if (window.__knowledgeRandomBrowsing) return;
   window.__knowledgeRandomBrowsing = true;
@@ -26,6 +34,20 @@ function installRandomBrowsing() {
   let cleanup = () => {};
   const connect = () => {
     cleanup();
+    const navigation = document.querySelector('[data-random-navigation]');
+    if (navigation) {
+      const inRandomMode = new URLSearchParams(window.location.search).get('browse') === 'random';
+      const links = JSON.parse(navigation.dataset.randomLinks);
+      const current = inRandomMode ? randomNoteNavigation(state, navigation.dataset.noteSlug, Object.keys(links)) : null;
+      navigation.hidden = !current;
+      if (current) {
+        navigation.querySelector('[data-random-progress]').textContent = `乱序浏览 · ${current.position} / ${current.total}`;
+        const next = navigation.querySelector('[data-random-next]');
+        next.hidden = !current.nextSlug;
+        if (current.nextSlug) next.href = `${links[current.nextSlug]}?browse=random`;
+        navigation.querySelector('[data-random-end]').hidden = Boolean(current.nextSlug);
+      }
+    }
     const panel = document.querySelector('.page > #quartz-body > .center .kb-overview[data-scope="leetcode"]');
     const directories = panel?.querySelector('.kb-directory-list');
     const list = panel?.querySelector('[data-random-notes]');
@@ -73,4 +95,4 @@ function installRandomBrowsing() {
   else document.addEventListener('DOMContentLoaded', connect, {once:true});
 }
 
-export const randomBrowseBridge = `(() => { ${shuffleNotes.toString()} (${installRandomBrowsing.toString()})(); })();`;
+export const randomBrowseBridge = `(() => { ${shuffleNotes.toString()} ${randomNoteNavigation.toString()} (${installRandomBrowsing.toString()})(); })();`;

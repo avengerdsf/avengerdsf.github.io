@@ -137,6 +137,14 @@ article > .markdown-preview-view:has(> .kb-note-card) { display: grid; gap: 24px
 .kb-browse-controls button { min-height: 42px; padding: 8px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-solid); color: var(--text); font: inherit; cursor: pointer; }
 .kb-browse-controls button:hover, .kb-browse-controls button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-soft); }
 .kb-browse-controls button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kb-random-navigation { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+.kb-random-progress { flex: 1; min-width: 160px; color: var(--muted); }
+.kb-random-navigation a, .kb-random-end { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; box-sizing: border-box; padding: 8px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-solid); color: var(--text); font-weight: 600; }
+.kb-random-navigation a:hover { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-soft); }
+.kb-random-navigation .kb-random-next { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-soft); }
+.kb-random-navigation a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kb-random-end { color: var(--muted); }
+.kb-random-navigation[hidden], .kb-random-navigation [hidden] { display: none !important; }
 .kb-overview [hidden] { display: none !important; }
 .kb-entry-list + .kb-random-notes { margin-top: 0; }
 .kb-empty { margin-top: 24px; color: var(--muted); }
@@ -176,6 +184,7 @@ footer, .page-footer:empty { display: none !important; }
   .kb-overview .kb-directory-link { min-height: 220px; padding: 20px; }
 }
 @media (max-width: 560px) {
+  .kb-random-progress { flex-basis: 100%; }
   .kb-brand span { display: none; }
   .kb-brand { min-width: 36px; }
   .page-header .search { margin-left: 4px; }

@@ -314,7 +314,7 @@ try:
             split_checks.append({'width':width, 'minimumWidths':[420,520], 'dragging':True, 'keyboard':True, 'reloadAndNavigationRetention':True, 'narrowFallback':True})
             print(f'Resizable note columns passed at {width}px', flush=True)
 
-        random_expected = {'/knowledge/' + slug for slug in content_index if slug.startswith('leetcode/') and not slug.endswith(('/index','/overview'))}
+        random_expected = {'/knowledge/' + slug + '?browse=random' for slug in content_index if slug.startswith('leetcode/') and not slug.endswith(('/index','/overview'))}
         random_checks = []
         for width in [390, 1440]:
             page.set_viewport_size({'width':width, 'height':1000})
