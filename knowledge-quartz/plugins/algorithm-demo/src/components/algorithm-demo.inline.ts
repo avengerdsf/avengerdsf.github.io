@@ -189,6 +189,7 @@ function mountMarkdownCodeBlocks() {
 
     const details = document.createElement("details")
     details.className = "algorithm-code"
+    details.id = heading.id
     const summary = document.createElement("summary")
     summary.textContent = "代码"
 
