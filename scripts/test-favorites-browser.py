@@ -27,10 +27,18 @@ class GitHubFile:
         self.favorites = []
         self.revision = 1
         self.write_status = None
+        self.read_failure = None
         self.before_write = None
+        self.before_read = None
     def route(self, route):
         request = route.request
         assert request.headers.get('authorization') == 'Bearer test-token'
+        if request.method == 'GET' and self.read_failure:
+            if self.read_failure == 'offline':
+                route.abort('internetdisconnected')
+            else:
+                route.fulfill(status=self.read_failure,content_type='application/json',body='{}')
+            return
         path = urlsplit(request.url).path
         status = 200
         if path == '/repos/avengerdsf/knowledge-favorites':
@@ -38,6 +46,9 @@ class GitHubFile:
         elif request.method == 'GET':
             assert path == '/repos/avengerdsf/knowledge-favorites/contents/favorites.json'
             result = {'type':'file','encoding':'base64','sha':f'{self.revision:040d}','content':base64.b64encode(json.dumps({'version':1,'favorites':self.favorites}).encode()).decode()}
+            if self.before_read:
+                action, self.before_read = self.before_read, None
+                action()
         else:
             assert request.method == 'PUT'
             body = request.post_data_json
@@ -78,6 +89,59 @@ try:
         if not executable:
             raise RuntimeError('A browser executable is required')
         browser = p.chromium.launch(executable_path=executable,args=['--no-sandbox'])
+        for failure in ['offline',401]:
+            recovery = browser.new_context()
+            recovery.route('https://api.github.com/**',cloud.route)
+            recovery.add_init_script('localStorage.setItem("avengerdsf-favorites-device","test-token")')
+            retry = recovery.new_page()
+            cloud.read_failure = failure
+            retry.goto(origin+'/knowledge/leetcode/?browse=favorites',wait_until='networkidle')
+            retry.wait_for_function('!window.__knowledgeFavorites.getState().loading')
+            assert not retry.evaluate('window.__knowledgeFavorites.getState().connected')
+            retry.locator('[data-favorites-settings]').first.click()
+            expect(retry.locator('[data-favorites-disconnect]')).to_be_visible()
+            retry.locator('[data-favorites-close]').click()
+            cloud.read_failure = None
+            retry.locator('[data-favorites-refresh]').click()
+            retry.wait_for_function('window.__knowledgeFavorites.getState().connected')
+            cloud.read_failure = failure
+            retry.reload(wait_until='networkidle')
+            retry.wait_for_function('!window.__knowledgeFavorites.getState().loading')
+            retry.locator('[data-favorites-settings]').first.click()
+            retry.locator('[data-favorites-disconnect]').click()
+            assert retry.evaluate('localStorage.getItem("avengerdsf-favorites-device")') is None
+            assert retry.evaluate('sessionStorage.getItem("avengerdsf-favorites-session")') is None
+            recovery.close()
+        cloud.read_failure = None
+        for remember in [True,False]:
+            tabs = browser.new_context()
+            tabs.route('https://api.github.com/**',cloud.route)
+            owner, sibling = tabs.new_page(), tabs.new_page()
+            owner.goto(origin+'/knowledge/leetcode/?browse=favorites',wait_until='networkidle')
+            owner.locator('[data-favorites-settings]').first.click()
+            authorize(owner,remember)
+            sibling.goto(origin+'/knowledge/leetcode/?browse=favorites',wait_until='networkidle')
+            if not remember:
+                sibling.locator('[data-favorites-settings]').first.click()
+                authorize(sibling)
+            sibling.wait_for_function('window.__knowledgeFavorites.getState().connected')
+            owner.locator('[data-favorites-settings]').first.click()
+            def log_out_device():
+                owner.evaluate('document.querySelector("[data-favorites-disconnect]").click()')
+                sibling.wait_for_function('!window.__knowledgeFavorites.getState().connected',timeout=5000)
+            if remember:
+                log_out_device()
+            else:
+                cloud.before_read = log_out_device
+                with sibling.expect_response(lambda response: '/contents/favorites.json' in response.url):
+                    sibling.locator('[data-favorites-refresh]').click()
+                sibling.wait_for_function('!window.__knowledgeFavorites.getState().connected')
+            for tab in [owner,sibling]:
+                assert not tab.evaluate('window.__knowledgeFavorites.getState().connected')
+                assert not tab.evaluate('window.__knowledgeFavorites.getState().loading')
+                assert tab.evaluate('localStorage.getItem("avengerdsf-favorites-device")') is None
+                assert tab.evaluate('sessionStorage.getItem("avengerdsf-favorites-session")') is None
+            tabs.close()
         a = browser.new_context(viewport={'width':1440,'height':1000})
         b = browser.new_context(viewport={'width':390,'height':844})
         a.route('https://api.github.com/**',cloud.route)
@@ -181,6 +245,6 @@ try:
         assert cloud.favorites == []
         assert not errors, errors
         a.close(); b.close(); c.close(); browser.close()
-        print('Favorites browser checks passed: shared GitHub file, independent devices, cancellation, shuffle retention, navigation while saving, failure recovery, authorization cleanup and code folding.',flush=True)
+        print('Favorites browser checks passed: shared GitHub file, independent devices, cancellation, shuffle retention, navigation while saving, failure recovery, saved-authorization recovery, cross-tab logout, stale-response invalidation and code folding.',flush=True)
 finally:
     server.shutdown()

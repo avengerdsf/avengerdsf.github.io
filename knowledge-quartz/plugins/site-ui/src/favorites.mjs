@@ -4,6 +4,7 @@ function installFavorites() {
   if (window.__knowledgeFavorites) return;
   const sessionKey = 'avengerdsf-favorites-session';
   const deviceKey = 'avengerdsf-favorites-device';
+  const logoutKey = 'avengerdsf-favorites-logout';
   let store = null;
   let restored = false;
   let generation = 0;
@@ -11,6 +12,13 @@ function installFavorites() {
   let trigger = null;
   const state = {items:[], connected:false, loading:false, busy:false, busySlug:null, message:''};
   const snapshot = () => ({...state, items:[...state.items]});
+  const savedCredentials = () => {
+    try {
+      const session = sessionStorage.getItem(sessionKey);
+      const device = localStorage.getItem(deviceKey);
+      return session || device ? {token:session || device,remember:!session} : null;
+    } catch { return null; }
+  };
   const errorText = error => {
     if (error.code === 'INVALID_DATA') return '收藏文件格式异常，已停止写入。';
     if (error.code === 'PRIVATE_REQUIRED') return '收藏仓库需要设为私有。';
@@ -38,7 +46,7 @@ function installFavorites() {
     const modal = dialog();
     if (modal) {
       modal.querySelector('[data-favorites-connect]').disabled = state.loading || state.busy;
-      modal.querySelector('[data-favorites-disconnect]').hidden = !state.connected;
+      modal.querySelector('[data-favorites-disconnect]').hidden = !state.connected && !savedCredentials();
     }
   };
   const notify = () => {
@@ -48,16 +56,24 @@ function installFavorites() {
   const clearCredentials = () => {
     try { sessionStorage.removeItem(sessionKey); localStorage.removeItem(deviceKey); } catch {}
   };
-  const disconnect = () => {
+  const disconnect = (broadcast = true) => {
     generation += 1;
     store = null;
     pendingSlug = null;
     clearCredentials();
     Object.assign(state,{items:[],connected:false,loading:false,busy:false,busySlug:null,message:''});
     notify();
+    if (broadcast) {
+      try { localStorage.setItem(logoutKey,`${Date.now()}:${Math.random()}`); } catch {}
+    }
   };
   const refresh = async () => {
-    if (!store || state.busy || state.loading) return;
+    if (state.busy || state.loading) return;
+    if (!store) {
+      const saved = savedCredentials();
+      if (saved) await connect(saved.token,saved.remember);
+      return;
+    }
     const activeStore = store;
     const version = ++generation;
     state.loading = true;
@@ -154,17 +170,18 @@ function installFavorites() {
     paint();
     if (!restored) {
       restored = true;
-      try {
-        const session = sessionStorage.getItem(sessionKey);
-        const device = localStorage.getItem(deviceKey);
-        if (session || device) void connect(session || device,!session);
-      } catch {}
+      void refresh();
     } else if (state.connected) void refresh();
   };
   document.addEventListener('nav',mount);
   document.addEventListener('render',mount);
   window.addEventListener('focus',() => {
     if (document.querySelector('[data-favorite-note], [data-favorites-toggle]')) void refresh();
+  });
+  window.addEventListener('storage',event => {
+    if (event.key !== logoutKey || event.storageArea !== localStorage) return;
+    disconnect(false);
+    dialog()?.close();
   });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',mount,{once:true});
   else mount();
