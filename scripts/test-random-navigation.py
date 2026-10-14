@@ -78,11 +78,12 @@ try:
             expect(page.locator('[data-random-notes]')).to_be_visible()
             assert links.evaluate_all('(nodes) => nodes.map(node => node.getAttribute("href"))') == refreshed
             page.goto(origin + urlsplit(refreshed[0]).path, wait_until='networkidle')
-            expect(navigation).not_to_be_visible()
+            expect(page.locator('[data-random-progress]')).not_to_be_visible()
+            expect(page.locator('[data-favorite-note]')).to_be_visible()
             page.goto(origin + '/knowledge/leetcode/', wait_until='networkidle')
             page.locator('[data-random-toggle]').click()
             page.goto(origin + refreshed[0], wait_until='networkidle')
-            expect(navigation).not_to_be_visible()
+            expect(page.locator('[data-random-progress]')).not_to_be_visible()
             assert not errors, errors
             context.close()
             print(f'Random navigation passed at {width}px: sequence, reload, history, reshuffle, last problem, normal browsing', flush=True)

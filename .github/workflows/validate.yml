@@ -100,6 +100,7 @@ jobs:
           .build/browser-env/bin/pip install --disable-pip-version-check playwright==1.57.0
           .build/browser-env/bin/python scripts/test-knowledge-browser.py .build/preview ui-checkpoints
           .build/browser-env/bin/python scripts/test-random-navigation.py .build/preview ui-checkpoints
+          .build/browser-env/bin/python scripts/test-favorites-browser.py .build/preview ui-checkpoints
 
       - name: Upload browser evidence
         if: ${{ !cancelled() && hashFiles('ui-checkpoints/*.png') != '' }}

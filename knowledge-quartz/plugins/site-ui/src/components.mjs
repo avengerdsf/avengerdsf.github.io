@@ -4,6 +4,7 @@ import { directoryContents, parentDirectoryHref, navigationBridge } from './navi
 import { themeBridge } from './theme.mjs';
 import { leetcodeProblemNotes, randomBrowseBridge } from './random.mjs';
 import { noteSplitBridge } from './note-split.mjs';
+import { favoritesBridge } from './favorites.mjs';
 
 const external = {target: '_blank', rel: 'noopener noreferrer', 'data-no-popover': true};
 const arrow = () => h('span', {'aria-hidden': 'true'}, '↗');
@@ -13,6 +14,21 @@ const folderIcon = () => h('svg', {viewBox: '0 0 24 24', fill: 'none', stroke: '
 
 const documentIcon = () => h('svg', {viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.6', 'aria-hidden': 'true'},
   h('path', {d: 'M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z M14 3v6h6 M8 13h8 M8 17h6'}),
+);
+const favoritesDialog = () => h('dialog', {class:'kb-favorites-dialog', 'data-favorites-dialog':true, 'aria-labelledby':'kb-favorites-dialog-title'},
+  h('form', {'data-favorites-form':true, method:'dialog'},
+    h('div', {class:'kb-favorites-heading'}, h('h2', {id:'kb-favorites-dialog-title'}, 'GitHub 收藏授权'), h('button', {type:'button','data-favorites-close':true,'aria-label':'关闭授权窗口'}, '×')),
+    h('p', null, '只选择私有仓库 knowledge-favorites，并开启 Contents 读写权限。'),
+    h('a', {href:'https://github.com/settings/personal-access-tokens/new',...external}, '创建受限访问令牌'),
+    h('label', {for:'kb-favorites-token'}, 'GitHub 访问令牌'),
+    h('input', {id:'kb-favorites-token',type:'password',autocomplete:'off',spellcheck:false,required:true,'data-favorites-token':true}),
+    h('label', {class:'kb-favorites-remember'}, h('input', {type:'checkbox','data-favorites-remember':true}), '记住此设备'),
+    h('p', {role:'status','data-favorites-message':true,hidden:true}),
+    h('div', {class:'kb-favorites-dialog-actions'},
+      h('button', {type:'button','data-favorites-disconnect':true,hidden:true}, '退出本设备授权'),
+      h('button', {type:'submit','data-favorites-connect':true}, '连接 GitHub'),
+    ),
+  ),
 );
 export function KnowledgeBrand() {
   const Brand = () => h('a', {class: 'kb-brand kb-home-link', href: '/', 'data-router-ignore': true, 'aria-label': 'Chenyinhong，返回主页'},
@@ -54,11 +70,17 @@ export function KnowledgeOverview() {
     if (slug !== 'index' && !slug?.endsWith('/index')) {
       const problems = slug?.startsWith('leetcode/') ? leetcodeProblemNotes(allFiles) : [];
       if (!problems.some(note => note.slug === slug)) return null;
-      return h('nav', {class:'kb-random-navigation', 'data-random-navigation':true, 'data-note-slug':slug, 'data-random-links':JSON.stringify(Object.fromEntries(problems.map(note => [note.slug, noteHref(note.slug)]))), 'aria-label':'乱序题目导航', hidden:true},
-        h('span', {class:'kb-random-progress', 'data-random-progress':true}),
-        h('a', {class:'internal', href:'/knowledge/leetcode/', 'data-random-return':true, 'data-no-popover':'true'}, '返回乱序列表'),
+      return h('div', {class:'kb-note-browse'},
+        h('nav', {class:'kb-random-navigation', 'data-random-navigation':true, 'data-note-slug':slug, 'data-random-links':JSON.stringify(Object.fromEntries(problems.map(note => [note.slug, noteHref(note.slug)]))), 'aria-label':'题目操作'},
+        h('span', {class:'kb-random-progress', 'data-random-progress':true,hidden:true}),
+        h('button', {type:'button','data-favorite-note':slug,'aria-pressed':false}, '☆ 收藏'),
+        h('a', {class:'internal',href:'/knowledge/leetcode/?browse=favorites','data-favorites-return':true,'data-no-popover':'true',hidden:true},'返回收藏夹'),
+        h('a', {class:'internal', href:'/knowledge/leetcode/?browse=random', 'data-random-return':true, 'data-no-popover':'true',hidden:true}, '返回乱序列表'),
         h('a', {class:'internal kb-random-next', 'data-random-next':true, 'data-no-popover':'true', hidden:true}, '下一题 →'),
         h('span', {class:'kb-random-end', 'data-random-end':true, hidden:true}, '已到最后一题'),
+        ),
+        h('p', {class:'kb-favorites-message',role:'status','data-favorites-message':true,hidden:true}),
+        favoritesDialog(),
       );
     }
     if (slug?.startsWith('tags/')) return null;
@@ -70,6 +92,14 @@ export function KnowledgeOverview() {
       problems.length > 0 && h('div', {class:'kb-browse-controls', 'aria-label':'题目浏览方式'},
         h('button', {type:'button', 'data-random-toggle':true, 'aria-pressed':false, 'aria-controls':'kb-random-notes'}, '乱序浏览'),
         h('button', {type:'button', 'data-random-refresh':true, hidden:true}, '重新打乱'),
+        h('button', {type:'button','data-favorites-toggle':true,'aria-pressed':false,'aria-controls':'kb-favorite-notes'}, '收藏夹'),
+      ),
+      problems.length > 0 && h('section', {class:'kb-favorites-panel','data-favorites-panel':true,hidden:true},
+        h('div', {class:'kb-favorites-heading'}, h('h2',null,'收藏夹'),
+          h('div', null, h('button',{type:'button','data-favorites-refresh':true},'刷新收藏'),h('button',{type:'button','data-favorites-settings':true},'GitHub 授权')),
+        ),
+        h('p', {role:'status','data-favorites-status':true},'连接 GitHub 后查看收藏。'),
+        h('ul', {id:'kb-favorite-notes',class:'kb-entry-list','data-favorite-notes':true,'aria-label':'收藏题目'}),
       ),
       directories.length > 0 && h('ul', {class: 'kb-notebooks kb-directory-list kb-entry-list', 'aria-label': scope === 'leetcode' ? '题型目录' : '子目录'}, directories.map(directory => h('li', {key: directory.slug},
         h('a', {class: 'internal kb-directory-link kb-entry-link', href: noteHref(`${directory.slug}/index`), 'aria-label': directory.title, 'data-no-popover':'true'},
@@ -98,8 +128,9 @@ export function KnowledgeOverview() {
         ),
       ))),
       !directories.length && (!scope || !notes.length) && h('p', {class:'kb-empty'}, scope ? '此目录还没有笔记。' : '还没有笔记目录。'),
+      problems.length > 0 && favoritesDialog(),
     );
   };
-  Overview.afterDOMLoaded = randomBrowseBridge;
+  Overview.afterDOMLoaded = `${favoritesBridge}\n${randomBrowseBridge}`;
   return Overview;
 }
