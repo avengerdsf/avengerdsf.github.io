@@ -103,6 +103,12 @@ article > .markdown-preview-view:has(> .kb-note-card) { display: grid; gap: 24px
 .kb-note-card { display: flow-root; min-width: 0; padding: var(--kb-reading-padding); border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-solid); }
 .kb-note-card > h2:first-child { margin-top: 0; }
 .kb-note-card > :last-child { margin-bottom: 0; }
+.kb-solution-switcher { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.kb-solution-switcher button { padding: 10px 16px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface-solid); color: var(--text-strong); font: inherit; font-weight: 600; cursor: pointer; }
+.kb-solution-switcher button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); }
+.kb-solution-switcher button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.kb-solution-panel > :first-child { margin-top: 0; }
+.kb-solution-panel[hidden] { display: none !important; }
 .kb-note-splitter { display: none; position: relative; align-self: stretch; min-width: 0; touch-action: none; cursor: col-resize; }
 .kb-note-splitter::before { content: ""; position: absolute; inset-block: 0; left: 11px; width: 2px; border-radius: 2px; background: var(--line-strong); }
 .kb-note-splitter::after { content: ""; position: sticky; top: calc(50dvh - 20px); display: block; width: 8px; height: 40px; margin-inline: auto; border-radius: 4px; background: var(--line-strong); }
