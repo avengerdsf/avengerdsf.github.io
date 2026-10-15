@@ -26,31 +26,39 @@ function installRandomBrowsing() {
   if (window.__knowledgeRandomBrowsing) return;
   window.__knowledgeRandomBrowsing = true;
   const key = 'avengerdsf-leetcode-random';
-  let state = {active:false, order:[], view:'directories'};
+  let state = {active:false, order:[], favoritesOrder:[], view:'directories'};
   try {
     const saved = JSON.parse(sessionStorage.getItem(key));
-    state = {active:saved?.active === true, order:Array.isArray(saved?.order) ? saved.order : [], view:['random','favorites','directories'].includes(saved?.view) ? saved.view : saved?.active ? 'random' : 'directories'};
+    state = {active:saved?.active === true, order:Array.isArray(saved?.order) ? saved.order : [], favoritesOrder:Array.isArray(saved?.favoritesOrder) ? saved.favoritesOrder : [], view:['random','favorites','directories'].includes(saved?.view) ? saved.view : saved?.active ? 'random' : 'directories'};
   } catch {}
   let cleanup = () => {};
   const connect = () => {
     cleanup();
     const navigation = document.querySelector('[data-random-navigation]');
     if (navigation) {
-      const inRandomMode = new URLSearchParams(window.location.search).get('browse') === 'random';
+      const mode = new URLSearchParams(window.location.search).get('browse');
       const links = JSON.parse(navigation.dataset.randomLinks);
-      const current = inRandomMode ? randomNoteNavigation(state, navigation.dataset.noteSlug, Object.keys(links)) : null;
-      navigation.querySelector('[data-random-progress]').hidden = !current;
-      navigation.querySelector('[data-random-return]').hidden = !current;
-      navigation.querySelector('[data-random-next]').hidden = !current?.nextSlug;
-      navigation.querySelector('[data-random-end]').hidden = !current || Boolean(current.nextSlug);
-      navigation.querySelector('[data-favorites-return]').hidden = new URLSearchParams(window.location.search).get('browse') !== 'favorites';
-      if (current) {
-        navigation.querySelector('[data-random-progress]').textContent = `乱序浏览 · ${current.position} / ${current.total}`;
-        const next = navigation.querySelector('[data-random-next]');
-        next.hidden = !current.nextSlug;
-        if (current.nextSlug) next.href = `${links[current.nextSlug]}?browse=random`;
-        navigation.querySelector('[data-random-end]').hidden = Boolean(current.nextSlug);
-      }
+      const paintNavigation = () => {
+        const favorites = window.__knowledgeFavorites?.getState();
+        if (mode === 'favorites' && !state.favoritesOrder.includes(navigation.dataset.noteSlug) && favorites?.connected) {
+          state.favoritesOrder = [...favorites.items];
+          try { sessionStorage.setItem(key,JSON.stringify(state)); } catch {}
+        }
+        const browseState = mode === 'favorites' ? {active:true,order:state.favoritesOrder} : state;
+        const current = ['random','favorites'].includes(mode) ? randomNoteNavigation(browseState, navigation.dataset.noteSlug, Object.keys(links)) : null;
+        navigation.querySelector('[data-random-progress]').hidden = !current;
+        navigation.querySelector('[data-random-return]').hidden = !current || mode !== 'random';
+        navigation.querySelector('[data-random-next]').hidden = !current?.nextSlug;
+        navigation.querySelector('[data-random-end]').hidden = !current || Boolean(current.nextSlug);
+        navigation.querySelector('[data-favorites-return]').hidden = mode !== 'favorites';
+        if (current) {
+          navigation.querySelector('[data-random-progress]').textContent = `${mode === 'favorites' ? '收藏浏览' : '乱序浏览'} · ${current.position} / ${current.total}`;
+          if (current.nextSlug) navigation.querySelector('[data-random-next]').href = `${links[current.nextSlug]}?browse=${mode}`;
+        }
+      };
+      paintNavigation();
+      document.addEventListener('knowledge:favorites-change',paintNavigation);
+      cleanup = () => document.removeEventListener('knowledge:favorites-change',paintNavigation);
     }
     const panel = document.querySelector('.page > #quartz-body > .center .kb-overview[data-scope="leetcode"]');
     const directories = panel?.querySelector('.kb-directory-list');
@@ -128,14 +136,21 @@ function installRandomBrowsing() {
       save(); paint();
       if (state.view === 'favorites') void window.__knowledgeFavorites?.refresh();
     };
+    const startFavorites = event => {
+      if (!event.target.closest('.kb-favorite-note-link')) return;
+      state.favoritesOrder = [...favoritesPanel.querySelector('[data-favorite-notes]').children].map(item => item.dataset.noteSlug);
+      save();
+    };
     toggle.addEventListener('click', switchMode);
     refresh.addEventListener('click', reshuffle);
     favoritesToggle?.addEventListener('click',switchFavorites);
+    favoritesPanel?.addEventListener('click',startFavorites);
     document.addEventListener('knowledge:favorites-change',paint);
     cleanup = () => {
       toggle.removeEventListener('click', switchMode);
       refresh.removeEventListener('click', reshuffle);
       favoritesToggle?.removeEventListener('click',switchFavorites);
+      favoritesPanel?.removeEventListener('click',startFavorites);
       document.removeEventListener('knowledge:favorites-change',paint);
     };
     paint();
